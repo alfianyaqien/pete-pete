@@ -1,0 +1,38 @@
+/* PetePete base + design-token CSS variables (handoff README "Design Tokens").
+   Utilities/colors live in uno.config.ts; this file holds page-level base styles,
+   gradients, and the "ledger" double-rule that aren't pure utilities. */
+
+:root {
+  /* gradients */
+  --pp-canvas: radial-gradient(130% 90% at 50% -10%, #e9dec6 0%, #ddcfaf 52%, #cfbe9a 100%);
+  --pp-screen-mobile: linear-gradient(172deg, #f2e8d3 0%, #e9dcc0 52%, #e1d3b3 100%);
+  --pp-screen-desktop: linear-gradient(168deg, #f1e7d1 0%, #e8dbbf 60%, #e1d3b4 100%);
+  --pp-hero: linear-gradient(158deg, #27604a 0%, #1c4636 55%, #143729 100%);
+  --pp-card-raised: linear-gradient(165deg, #fbf5e6 0%, #f4edd6 100%);
+}
+
+html,
+body,
+#__nuxt {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--pp-canvas);
+  color: #2e2519;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* All numeric values use tabular figures for ledger alignment. */
+.num {
+  font-family: 'Fraunces', ui-serif, Georgia, serif;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+
+/* The "ledger" double-rule divider used above totals. */
+.rule-double {
+  border-top: 1.5px double #c9b894;
+}
