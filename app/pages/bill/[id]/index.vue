@@ -18,7 +18,7 @@ async function onCopy() {
 
 <template>
   <template v-if="bill">
-    <ScreenHeader
+    <screen-header
       back
       eyebrow="Ledger"
       :title="bill.title"
@@ -27,7 +27,7 @@ async function onCopy() {
     >
       <div class="rule-double mt-3 flex items-center justify-between pt-3">
         <span class="eyebrow">Total tally</span>
-        <MoneyText :value="stats?.total ?? 0" class="text-2xl font-600" />
+        <money-text :value="stats?.total ?? 0" class="text-2xl font-600" />
       </div>
       <button
         type="button"
@@ -37,13 +37,13 @@ async function onCopy() {
         <span :class="copied ? 'i-tabler-check text-forest' : 'i-tabler-link'" />
         {{ copied ? 'Link copied' : 'Copy link' }}
       </button>
-    </ScreenHeader>
+    </screen-header>
 
-    <main class="relative flex-1 overflow-y-auto px-5 pb-28 pt-4">
+    <main class="app-col relative flex-1 overflow-y-auto px-5 pb-28 pt-4">
       <p class="eyebrow mb-2">Entries</p>
 
       <div v-if="bill.entries.length" class="flex flex-col gap-2.5">
-        <EntryCard
+        <entry-card
           v-for="e in bill.entries"
           :key="e.id"
           :entry="e"
@@ -56,9 +56,9 @@ async function onCopy() {
         <p class="mt-2 text-sm text-body">No entries yet. Add your first expense.</p>
       </div>
 
-      <NuxtLink :to="`/bill/${id}/settle`" class="btn-ghost mt-5 w-full">
+      <core-button variant="ghost" block :to="`/bill/${id}/settle`" class="mt-5">
         <span class="i-tabler-arrow-right" /> Settle up
-      </NuxtLink>
+      </core-button>
 
       <!-- FAB -->
       <NuxtLink
@@ -70,7 +70,7 @@ async function onCopy() {
       </NuxtLink>
     </main>
 
-    <BottomNav active="receipt" :bill-id="id" />
+    <bottom-nav active="receipt" :bill-id="id" />
   </template>
 
   <div v-else class="flex flex-1 items-center justify-center p-8 text-center text-muted">

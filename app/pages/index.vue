@@ -28,13 +28,13 @@ const monthChip = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric
 </script>
 
 <template>
-  <ScreenHeader eyebrow="Ledger" title="Your expeditions">
+  <screen-header eyebrow="Ledger" title="Your expeditions">
     <template #brand>
-      <PpLogo :size="34" />
+      <pp-logo :size="34" />
     </template>
-  </ScreenHeader>
+  </screen-header>
 
-  <main class="relative flex-1 overflow-y-auto px-5 pb-24 pt-4">
+  <main class="app-col relative flex-1 overflow-y-auto px-5 pb-24 pt-4">
     <!-- empty state -->
     <div v-if="!hasBills" class="flex flex-col items-center pt-16 text-center">
       <svg width="120" height="120" viewBox="0 0 120 120" fill="none" aria-hidden="true">
@@ -52,14 +52,14 @@ const monthChip = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric
       <p class="mt-2 max-w-xs text-sm text-body">
         Start a trip ledger, add who came along, and split your first expense.
       </p>
-      <NuxtLink to="/bill/new" class="btn-forest mt-6">
+      <core-button to="/bill/new" class="mt-6">
         <span class="i-tabler-plus" /> Create bill
-      </NuxtLink>
+      </core-button>
     </div>
 
     <!-- populated dashboard -->
     <template v-else>
-      <HeroPanel>
+      <hero-panel>
         <div class="flex items-center justify-between">
           <p class="text-[10px] font-600 uppercase tracking-[.1em]" style="color: #9dc2ae">
             Trip ledger · this season
@@ -82,7 +82,7 @@ const monthChip = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric
           </div>
         </div>
         <div class="mt-3">
-          <ProgressBar
+          <progress-bar
             :segments="[
               { value: season.cleared, color: '#5FB07E' },
               { value: season.unsettled, color: '#E0A53C' },
@@ -94,23 +94,23 @@ const monthChip = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric
           <span class="rounded-chip-sm bg-white/12 px-2 py-1">🟫 {{ season.lunas }} lunas</span>
           <span class="rounded-chip-sm bg-white/12 px-2 py-1">{{ season.souls }} souls</span>
         </div>
-      </HeroPanel>
+      </hero-panel>
 
       <div class="mt-4 grid grid-cols-3 gap-2">
-        <StatTile icon="mountain" label="Expeditions" :value="String(bills?.length ?? 0)" />
-        <StatTile icon="users" label="Souls along" :value="String(season.souls)" />
-        <StatTile icon="route" label="Avg / trip" :value="formatCompact(avgPerTrip)" />
+        <stat-tile icon="mountain" label="Expeditions" :value="String(bills?.length ?? 0)" />
+        <stat-tile icon="users" label="Souls along" :value="String(season.souls)" />
+        <stat-tile icon="route" label="Avg / trip" :value="formatCompact(avgPerTrip)" />
       </div>
 
       <div class="mb-3 mt-6 flex items-center justify-between gap-3">
         <h2 class="font-serif text-lg font-600 text-ink">Expeditions</h2>
         <div class="w-44">
-          <SegmentedControl v-model="filter" :options="filterOptions" />
+          <core-segmented-control v-model="filter" :options="filterOptions" />
         </div>
       </div>
 
       <div class="flex flex-col gap-3">
-        <BillCard v-for="b in filtered" :key="b.id" :bill="b" />
+        <bill-card v-for="b in filtered" :key="b.id" :bill="b" />
         <p v-if="filtered.length === 0" class="py-6 text-center text-sm text-muted">
           No {{ filter }} expeditions.
         </p>
@@ -129,5 +129,5 @@ const monthChip = new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric
     <span class="i-tabler-plus text-2xl" />
   </NuxtLink>
 
-  <BottomNav active="home" />
+  <bottom-nav active="home" />
 </template>

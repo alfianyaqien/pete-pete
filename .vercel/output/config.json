@@ -62,10 +62,6 @@
       "dest": "/__fallback"
     },
     {
-      "src": "/dev",
-      "dest": "/dev"
-    },
-    {
       "src": "/bill/new",
       "dest": "/bill/new"
     },

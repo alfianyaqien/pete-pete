@@ -1,0 +1,2 @@
+import{f as c}from"./CQ_hvqW8.js";function o(n){return`${window.location.origin}/bill/${n}`}async function s(n){try{return await navigator.clipboard.writeText(o(n)),!0}catch{return!1}}function u(n,e){const a=t=>n.participants.find(r=>r.id===t)?.name??"?",i=e.map(t=>`• ${a(t.from)} → ${a(t.to)}: ${c(t.amount)}`);return[`🏔️ ${n.title} — settle up`,`${e.length} transfer${e.length===1?"":"s"} clears everyone:`,...i,"",o(n.id)].join(`
+`)}function l(n){window.open(`https://wa.me/?text=${encodeURIComponent(n)}`,"_blank")}export{u as a,s as c,l as s};

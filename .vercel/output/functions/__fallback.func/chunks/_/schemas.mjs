@@ -122,5 +122,5 @@ const entryInputSchema = z.discriminatedUnion("type", [
   sharedOrderEntryInputSchema
 ]);
 
-export { BADGE_KEYS as B, participantPatchSchema as a, billSchema as b, createBillInputSchema as c, entryInputSchema as e, participantInputSchema as p, updateBillInputSchema as u };
+export { BADGE_KEYS as B, participantPatchSchema as a, billSchema as b, createBillInputSchema as c, entryInputSchema as e, orderItemSchema as o, participantInputSchema as p, updateBillInputSchema as u };
 //# sourceMappingURL=schemas.mjs.map

@@ -693,54 +693,49 @@ const _routes = [
   {
     name: "bill-new",
     path: "/bill/new",
-    component: () => import('./new-DddivTY5.mjs')
+    component: () => import('./new-DNcDhjVz.mjs')
   },
   {
     name: "bill-id-export-image",
     path: "/bill/:id()/export/image",
     meta: __nuxt_page_meta$1 || {},
-    component: () => import('./image-0L3DHydR.mjs')
+    component: () => import('./image-Dm2QuUOH.mjs')
   },
   {
     name: "bill-id-export-pdf",
     path: "/bill/:id()/export/pdf",
     meta: __nuxt_page_meta || {},
-    component: () => import('./pdf-Cj0lCRoO.mjs')
+    component: () => import('./pdf-PlaWh358.mjs')
   },
   {
     name: "bill-id-add",
     path: "/bill/:id()/add",
-    component: () => import('./add-gG_Up2Z8.mjs')
+    component: () => import('./add-C9Pr9tnX.mjs')
   },
   {
     name: "bill-id-participants",
     path: "/bill/:id()/participants",
-    component: () => import('./participants-0zuk9hUJ.mjs')
+    component: () => import('./participants-Dg92Doll.mjs')
   },
   {
     name: "bill-id-settle",
     path: "/bill/:id()/settle",
-    component: () => import('./settle-DwVU8ki8.mjs')
+    component: () => import('./settle-0SNGTK2V.mjs')
   },
   {
     name: "bill-id",
     path: "/bill/:id()",
-    component: () => import('./index-DDCEg6EC.mjs')
+    component: () => import('./index-DoH-zgKk.mjs')
   },
   {
     name: "badges",
     path: "/badges",
-    component: () => import('./badges-CTFLd5fo.mjs')
-  },
-  {
-    name: "dev",
-    path: "/dev",
-    component: () => import('./dev-BhxP3DBy.mjs')
+    component: () => import('./badges-CnLAkpy5.mjs')
   },
   {
     name: "index",
     path: "/",
-    component: () => import('./index-u1iRYKR6.mjs')
+    component: () => import('./index-xqUR-IBd.mjs')
   }
 ];
 const _wrapInTransition = (props, children) => {
@@ -1977,7 +1972,7 @@ const plugins = [
   unocss_6Z4vW7S9aX_q2svWbGBc_X2b5QbQdkNmvzr_3kqqCd0
 ];
 const layouts = {
-  default: defineAsyncComponent(() => import('./default-1da9gmO3.mjs').then((m) => m.default || m))
+  default: defineAsyncComponent(() => import('./default-C-WZN03y.mjs').then((m) => m.default || m))
 };
 const routeRulesMatcher = _routeRulesMatcher;
 const LayoutLoader = defineComponent({
@@ -2263,7 +2258,7 @@ const _sfc_main$1 = {
     const statusText = _error.statusMessage ?? (is404 ? "Page Not Found" : "Internal Server Error");
     const description = _error.message || _error.toString();
     const stack = void 0;
-    const _Error404 = defineAsyncComponent(() => import('./error-404-BI17L5cw.mjs'));
+    const _Error404 = defineAsyncComponent(() => import('./error-404-CUXT2a4R.mjs'));
     const _Error = defineAsyncComponent(() => import('./error-500-Cj2Bn080.mjs'));
     const ErrorTemplate = is404 ? _Error404 : _Error;
     return (_ctx, _push, _parent, _attrs) => {
@@ -2356,5 +2351,5 @@ let entry;
 }
 const entry_default = ((ssrContext) => entry(ssrContext));
 
-export { _export_sfc as _, useRoute as a, useRouter as b, useRuntimeConfig as c, nuxtLinkDefaults as d, entry_default as default, encodeRoutePath as e, useFetch as f, navigateTo as n, resolveRouteObject as r, useNuxtApp as u };
+export { _export_sfc as _, useRoute as a, useFetch as b, useRouter as c, useRuntimeConfig as d, entry_default as default, encodeRoutePath as e, nuxtLinkDefaults as f, navigateTo as n, resolveRouteObject as r, useNuxtApp as u };
 //# sourceMappingURL=server.mjs.map

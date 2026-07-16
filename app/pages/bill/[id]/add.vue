@@ -2,8 +2,8 @@
 import { splitProportional, sharedOrderTotal } from '~~/shared/settle'
 import { entryInputSchema } from '~~/shared/schemas'
 import { formatRupiah } from '~~/shared/format'
-import type { EntryInput } from '~~/shared/types'
-import type { OrderItemDraft } from '~/components/AddOrderItem.vue'
+import type { Entry, EntryInput } from '~~/shared/types'
+import type { OrderItemDraft } from '~/components/add-order-item.vue'
 
 const route = useRoute()
 const id = route.params.id as string
@@ -14,23 +14,74 @@ const { me } = useIdentity(bill)
 interface ItemRow extends OrderItemDraft {
   id: string
 }
+interface FormShape {
+  type: 'simple' | 'shared_order'
+  title: string
+  amount: number
+  payerMode: 'one' | 'several'
+  payerId: string
+  payers: { participantId: string; amount: number }[]
+  shareMethod: 'equally' | 'exact'
+  sharerIds: string[]
+  exactShares: Record<string, number>
+  items: ItemRow[]
+  fees: { taxPercent: number; service: number; other: number }
+  discount: number
+}
 
-const f = reactive({
-  type: 'simple' as 'simple' | 'shared_order',
-  title: '',
-  amount: 0,
-  // simple
-  payerMode: 'one' as 'one' | 'several',
-  payerId: '',
-  payers: [] as { participantId: string; amount: number }[],
-  shareMethod: 'equally' as 'equally' | 'exact',
-  sharerIds: [] as string[],
-  exactShares: {} as Record<string, number>,
-  // shared order
-  items: [] as ItemRow[],
-  fees: { taxPercent: 0, service: 0, other: 0 },
-  discount: 0,
+const participants = computed(() => bill.value?.participants ?? [])
+const meId = me.value?.id ?? participants.value[0]?.id ?? ''
+
+function blank(): FormShape {
+  return {
+    type: 'simple',
+    title: '',
+    amount: 0,
+    payerMode: 'one',
+    payerId: meId,
+    payers: participants.value.map((p) => ({ participantId: p.id, amount: 0 })),
+    shareMethod: 'equally',
+    sharerIds: participants.value.map((p) => p.id),
+    exactShares: {},
+    items: [],
+    fees: { taxPercent: 0, service: 0, other: 0 },
+    discount: 0,
+  }
+}
+function fromEntry(e: Entry): FormShape {
+  const base = blank()
+  base.type = e.type
+  base.title = e.title
+  if (e.type === 'simple') {
+    base.amount = e.amount
+    base.payerMode = e.payers.length > 1 ? 'several' : 'one'
+    base.payerId = e.payers[0]?.participantId ?? meId
+    base.payers = participants.value.map((p) => ({
+      participantId: p.id,
+      amount: e.payers.find((x) => x.participantId === p.id)?.amount ?? 0,
+    }))
+    base.shareMethod = e.shareMethod
+    base.sharerIds = e.sharers.map((s) => s.participantId)
+    base.exactShares = Object.fromEntries(e.sharers.map((s) => [s.participantId, s.share]))
+  } else {
+    base.payerId = e.payerId
+    base.items = e.items.map((it) => ({ ...it }))
+    base.fees = { ...e.fees }
+    base.discount = e.discount
+  }
+  return base
+}
+
+const editEntry = editId ? bill.value?.entries.find((e) => e.id === editId) : undefined
+const { values, setFieldValue, handleSubmit, isSubmitting } = useForm<FormShape>({
+  initialValues: editEntry ? fromEntry(editEntry) : blank(),
 })
+
+// v-model bridges (form state via setFieldValue — no local refs)
+const typeModel = computed({ get: () => values.type, set: (v) => setFieldValue('type', v) })
+const payerModeModel = computed({ get: () => values.payerMode, set: (v) => setFieldValue('payerMode', v) })
+const shareMethodModel = computed({ get: () => values.shareMethod, set: (v) => setFieldValue('shareMethod', v) })
+const payerIdModel = computed({ get: () => values.payerId, set: (v) => setFieldValue('payerId', v) })
 
 const typeOptions = [
   { label: 'Simple', value: 'simple' as const },
@@ -44,118 +95,100 @@ const shareMethodOptions = [
   { label: 'Equally', value: 'equally' as const },
   { label: 'By exact amount', value: 'exact' as const },
 ]
-
-let initialized = false
-watch(
-  bill,
-  (b) => {
-    if (!b || initialized) return
-    f.payerId = me.value?.id ?? b.participants[0]?.id ?? ''
-    f.sharerIds = b.participants.map((p) => p.id)
-    f.payers = b.participants.map((p) => ({ participantId: p.id, amount: 0 }))
-    if (editId) prefill()
-    initialized = true
-  },
-  { immediate: true },
+const participantOptions = computed(() =>
+  participants.value.map((p) => ({ label: p.name, value: p.id })),
 )
+const nameOf = (pid: string) => participants.value.find((p) => p.id === pid)?.name ?? '?'
+const badgeOf = (pid: string) => participants.value.find((p) => p.id === pid)?.badgeKey
 
-function prefill() {
-  const e = bill.value?.entries.find((x) => x.id === editId)
-  if (!e) return
-  f.type = e.type
-  f.title = e.title
-  if (e.type === 'simple') {
-    f.amount = e.amount
-    f.payerMode = e.payers.length > 1 ? 'several' : 'one'
-    f.payerId = e.payers[0]?.participantId ?? f.payerId
-    f.payers = (bill.value?.participants ?? []).map((p) => ({
-      participantId: p.id,
-      amount: e.payers.find((x) => x.participantId === p.id)?.amount ?? 0,
-    }))
-    f.shareMethod = e.shareMethod
-    f.sharerIds = e.sharers.map((s) => s.participantId)
-    f.exactShares = Object.fromEntries(e.sharers.map((s) => [s.participantId, s.share]))
-  } else {
-    f.payerId = e.payerId
-    f.items = e.items.map((it) => ({ ...it }))
-    f.fees = { ...e.fees }
-    f.discount = e.discount
-  }
-}
-
-const nameOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.name ?? '?'
-
-// ── live split (simple) ───────────────────────────────────────────────────
+// ── live split (simple) ─────────────────────────────────────────────────
 const equalSplit = computed<Record<string, number>>(() => {
-  if (!f.sharerIds.length) return {}
-  const parts = splitProportional(f.amount || 0, f.sharerIds.map(() => 1))
-  return Object.fromEntries(f.sharerIds.map((pid, i) => [pid, parts[i]]))
+  if (!values.sharerIds.length) return {}
+  const parts = splitProportional(values.amount || 0, values.sharerIds.map(() => 1))
+  return Object.fromEntries(values.sharerIds.map((pid, i) => [pid, parts[i]]))
 })
 const shareOf = (pid: string) =>
-  f.shareMethod === 'equally' ? (equalSplit.value[pid] ?? 0) : (f.exactShares[pid] ?? 0)
+  values.shareMethod === 'equally' ? (equalSplit.value[pid] ?? 0) : (values.exactShares[pid] ?? 0)
+const payerAmountOf = (pid: string) =>
+  values.payers.find((x) => x.participantId === pid)?.amount ?? 0
 
+function setExactShare(pid: string, n: number) {
+  setFieldValue('exactShares', { ...values.exactShares, [pid]: n })
+}
+function setPayerAmount(pid: string, n: number) {
+  setFieldValue(
+    'payers',
+    values.payers.map((x) => (x.participantId === pid ? { ...x, amount: n } : x)),
+  )
+}
 function toggleSharer(pid: string) {
-  const i = f.sharerIds.indexOf(pid)
-  if (i >= 0) f.sharerIds.splice(i, 1)
-  else f.sharerIds.push(pid)
+  const next = [...values.sharerIds]
+  const i = next.indexOf(pid)
+  if (i >= 0) next.splice(i, 1)
+  else next.push(pid)
+  setFieldValue('sharerIds', next)
 }
-const allShared = computed(() => f.sharerIds.length === (bill.value?.participants.length ?? 0))
+const allShared = computed(() => values.sharerIds.length === participants.value.length)
 function selectAllSharers() {
-  f.sharerIds = allShared.value ? [] : (bill.value?.participants.map((p) => p.id) ?? [])
+  setFieldValue('sharerIds', allShared.value ? [] : participants.value.map((p) => p.id))
 }
 
-// ── shared order live ─────────────────────────────────────────────────────
+// ── shared order ────────────────────────────────────────────────────────
 const sheetOpen = ref(false)
 function onSaveItem(item: OrderItemDraft) {
-  f.items.push({ ...item, id: 'tmp-' + Math.random().toString(36).slice(2) })
+  setFieldValue('items', [
+    ...values.items,
+    { ...item, id: 'tmp-' + Math.random().toString(36).slice(2) },
+  ])
+}
+function removeItem(i: number) {
+  setFieldValue('items', values.items.filter((_, idx) => idx !== i))
 }
 const sharedSubtotal = computed(() =>
   sharedOrderTotal({
     id: 'x',
     type: 'shared_order',
-    title: f.title || 'x',
-    payerId: f.payerId || 'x',
-    items: f.items.length
-      ? f.items.map((it) => ({ ...it, id: it.id }))
+    title: values.title || 'x',
+    payerId: values.payerId || 'x',
+    items: values.items.length
+      ? values.items.map((it) => ({ ...it }))
       : [{ id: 'z', name: 'z', qty: 1, priceEach: 0, orderedBy: ['z'] }],
-    fees: f.fees,
-    discount: f.discount,
+    fees: values.fees,
+    discount: values.discount,
   }),
 )
 
-// ── submit ────────────────────────────────────────────────────────────────
+// ── submit ──────────────────────────────────────────────────────────────
 const error = ref('')
-const submitting = ref(false)
 
 function buildPayload(): EntryInput {
-  if (f.type === 'simple') {
-    const sharers = f.sharerIds.map((pid) => ({ participantId: pid, share: shareOf(pid) }))
+  if (values.type === 'simple') {
+    const sharers = values.sharerIds.map((pid) => ({ participantId: pid, share: shareOf(pid) }))
     const amount =
-      f.shareMethod === 'exact' ? sharers.reduce((a, s) => a + s.share, 0) : f.amount
+      values.shareMethod === 'exact' ? sharers.reduce((a, s) => a + s.share, 0) : values.amount
     const payers =
-      f.payerMode === 'one'
-        ? [{ participantId: f.payerId, amount }]
-        : f.payers.filter((p) => p.amount > 0)
-    return { type: 'simple', title: f.title, amount, payers, shareMethod: f.shareMethod, sharers }
+      values.payerMode === 'one'
+        ? [{ participantId: values.payerId, amount }]
+        : values.payers.filter((p) => p.amount > 0)
+    return { type: 'simple', title: values.title, amount, payers, shareMethod: values.shareMethod, sharers }
   }
   return {
     type: 'shared_order',
-    title: f.title,
-    payerId: f.payerId,
-    items: f.items.map(({ name, qty, priceEach, orderedBy }) => ({ name, qty, priceEach, orderedBy })),
-    fees: f.fees,
-    discount: f.discount,
+    title: values.title,
+    payerId: values.payerId,
+    items: values.items.map(({ name, qty, priceEach, orderedBy }) => ({ name, qty, priceEach, orderedBy })),
+    fees: values.fees,
+    discount: values.discount,
   }
 }
 
-async function submit() {
+const onSubmit = handleSubmit(async () => {
   error.value = ''
   const parsed = entryInputSchema.safeParse(buildPayload())
   if (!parsed.success) {
     error.value = parsed.error.issues[0]?.message ?? 'Please complete the expense'
     return
   }
-  submitting.value = true
   try {
     await $fetch(editId ? `/api/bills/${id}/entries/${editId}` : `/api/bills/${id}/entries`, {
       method: editId ? 'PUT' : 'POST',
@@ -164,198 +197,202 @@ async function submit() {
     await navigateTo(`/bill/${id}`)
   } catch (e: any) {
     error.value = e?.data?.statusMessage || 'Could not save expense'
-  } finally {
-    submitting.value = false
   }
-}
+})
 </script>
 
 <template>
-  <ScreenHeader back :title="editId ? 'Edit expense' : 'Add expense'" @back="navigateTo(`/bill/${id}`)" />
+  <screen-header
+    back
+    :title="editId ? 'Edit expense' : 'Add expense'"
+    @back="navigateTo(`/bill/${id}`)"
+  />
 
-  <main v-if="bill" class="flex-1 overflow-y-auto px-5 pb-28 pt-4">
-    <SegmentedControl v-model="f.type" :options="typeOptions" :accent="f.type === 'shared_order' ? 'ochre' : 'forest'" />
-
-    <label class="mt-4 block">
-      <span class="eyebrow">What for</span>
-      <input
-        v-model="f.title"
-        :placeholder="f.type === 'simple' ? 'Gasoline' : 'Warung dinner'"
-        class="mt-1.5 w-full rounded-control border border-line-light bg-surface-input px-3 py-2.5 text-ink focus:border-forest focus:outline-none"
+  <main v-if="bill" class="app-col flex-1 overflow-y-auto px-5 pb-28 pt-4">
+    <form @submit.prevent="onSubmit">
+      <core-segmented-control
+        v-model="typeModel"
+        :options="typeOptions"
+        :accent="values.type === 'shared_order' ? 'ochre' : 'forest'"
       />
-    </label>
 
-    <!-- ───────── SIMPLE ───────── -->
-    <template v-if="f.type === 'simple'">
-      <label class="mt-3 block">
-        <span class="eyebrow">Amount</span>
-        <input
-          v-model.number="f.amount"
-          type="number"
-          min="0"
-          placeholder="320000"
-          class="mt-1.5 w-full rounded-control border-2 border-forest bg-surface-input px-3 py-2.5 text-ink focus:outline-none"
-        />
-      </label>
+      <core-input
+        name="title"
+        label="What for"
+        :placeholder="values.type === 'simple' ? 'Gasoline' : 'Warung dinner'"
+        class="mt-4"
+      />
 
-      <!-- Step 1 -->
-      <div class="mt-5 flex items-center gap-2">
-        <span class="flex size-5 items-center justify-center rounded-full bg-forest text-[11px] font-700 text-surface-card">1</span>
-        <span class="font-serif text-base font-600">Who paid up front</span>
-      </div>
-      <div class="mt-2">
-        <SegmentedControl v-model="f.payerMode" :options="payerModeOptions" />
-      </div>
-      <div v-if="f.payerMode === 'one'" class="mt-2 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
-        <AvatarBadge v-if="f.payerId" :badge-key="bill.participants.find((p) => p.id === f.payerId)!.badgeKey" :size="34" />
-        <div class="flex-1">
-          <select v-model="f.payerId" class="w-full bg-transparent font-600 text-ink focus:outline-none">
-            <option v-for="p in bill.participants" :key="p.id" :value="p.id">{{ p.name }}</option>
-          </select>
-          <p class="text-xs text-muted">fronts the whole amount</p>
+      <!-- ───────── SIMPLE ───────── -->
+      <template v-if="values.type === 'simple'">
+        <core-input name="amount" numeric type="number" min="0" label="Amount" placeholder="320000" variant="emphasis" class="mt-3" />
+
+        <!-- Step 1 -->
+        <div class="mt-5 flex items-center gap-2">
+          <span class="flex size-5 items-center justify-center rounded-full bg-forest text-[11px] font-700 text-surface-card">1</span>
+          <span class="font-serif text-base font-600">Who paid up front</span>
         </div>
-        <MoneyText :value="f.amount" class="text-sm font-600" />
-      </div>
-      <div v-else class="mt-2 flex flex-col gap-2">
-        <div v-for="p in bill.participants" :key="p.id" class="flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2">
-          <AvatarBadge :badge-key="p.badgeKey" :size="28" />
-          <span class="flex-1 text-sm">{{ p.name }}</span>
-          <input
-            v-model.number="f.payers.find((x) => x.participantId === p.id)!.amount"
-            type="number"
-            min="0"
-            class="w-28 rounded-control bg-surface-input px-2 py-1.5 text-right text-sm"
-          />
+        <div class="mt-2">
+          <core-segmented-control v-model="payerModeModel" :options="payerModeOptions" />
         </div>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="mt-5 flex items-center gap-2">
-        <span class="flex size-5 items-center justify-center rounded-full bg-forest text-[11px] font-700 text-surface-card">2</span>
-        <span class="font-serif text-base font-600">Who shares the cost</span>
-      </div>
-      <div class="mt-2">
-        <SegmentedControl v-model="f.shareMethod" :options="shareMethodOptions" />
-      </div>
-      <div class="chip-pos mt-3 w-full justify-center py-2 text-center">
-        Split <b class="mx-1">{{ f.sharerIds.length }} ways</b>
-        <template v-if="f.shareMethod === 'equally' && f.payerMode === 'one'">
-          · each owes {{ nameOf(f.payerId) }} {{ formatRupiah(equalSplit[f.sharerIds[0]] ?? 0) }}
-        </template>
-      </div>
-      <button type="button" class="mt-3 text-xs font-600 text-forest" @click="selectAllSharers">
-        <span class="i-tabler-check" /> {{ allShared ? 'Clear all' : 'Select all' }}
-      </button>
-      <div class="mt-2 flex flex-col gap-2">
-        <div
-          v-for="p in bill.participants"
-          :key="p.id"
-          class="flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2 transition-opacity"
-          :class="f.sharerIds.includes(p.id) ? '' : 'opacity-70'"
-        >
-          <AvatarBadge :badge-key="p.badgeKey" :size="28" />
+        <div v-if="values.payerMode === 'one'" class="mt-2 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
+          <avatar-badge v-if="values.payerId" :badge-key="badgeOf(values.payerId)!" :size="34" />
           <div class="flex-1">
-            <span class="text-sm font-600">{{ p.name }}</span>
-            <p v-if="!f.sharerIds.includes(p.id)" class="text-xs text-muted">not sharing</p>
+            <core-select v-model="payerIdModel" :options="participantOptions" variant="bare" />
+            <p class="text-xs text-muted">fronts the whole amount</p>
           </div>
-          <input
-            v-if="f.sharerIds.includes(p.id) && f.shareMethod === 'exact'"
-            v-model.number="f.exactShares[p.id]"
-            type="number"
-            min="0"
-            class="w-24 rounded-control bg-surface-input px-2 py-1 text-right text-sm"
-          />
-          <MoneyText v-else-if="f.sharerIds.includes(p.id)" :value="shareOf(p.id)" class="text-sm" />
-          <button
-            type="button"
-            class="flex size-6 items-center justify-center rounded-chip-sm border"
-            :class="f.sharerIds.includes(p.id) ? 'border-forest bg-forest text-white' : 'border-line-medium text-transparent'"
-            @click="toggleSharer(p.id)"
+          <money-text :value="values.amount" class="text-sm font-600" />
+        </div>
+        <div v-else class="mt-2 flex flex-col gap-2">
+          <div v-for="p in participants" :key="p.id" class="flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2">
+            <avatar-badge :badge-key="p.badgeKey" :size="28" />
+            <span class="flex-1 text-sm">{{ p.name }}</span>
+            <div class="w-28">
+              <core-input
+                :model-value="payerAmountOf(p.id)"
+                numeric
+                type="number"
+                min="0"
+                variant="compact"
+                class="text-right"
+                @update:model-value="setPayerAmount(p.id, $event as number)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="mt-5 flex items-center gap-2">
+          <span class="flex size-5 items-center justify-center rounded-full bg-forest text-[11px] font-700 text-surface-card">2</span>
+          <span class="font-serif text-base font-600">Who shares the cost</span>
+        </div>
+        <div class="mt-2">
+          <core-segmented-control v-model="shareMethodModel" :options="shareMethodOptions" />
+        </div>
+        <div class="chip-pos mt-3 w-full justify-center py-2 text-center">
+          Split <b class="mx-1">{{ values.sharerIds.length }} ways</b>
+          <template v-if="values.shareMethod === 'equally' && values.payerMode === 'one'">
+            · each owes {{ nameOf(values.payerId) }} {{ formatRupiah(equalSplit[values.sharerIds[0]] ?? 0) }}
+          </template>
+        </div>
+        <button type="button" class="mt-3 text-xs font-600 text-forest" @click="selectAllSharers">
+          <span class="i-tabler-check" /> {{ allShared ? 'Clear all' : 'Select all' }}
+        </button>
+        <div class="mt-2 flex flex-col gap-2">
+          <div
+            v-for="p in participants"
+            :key="p.id"
+            class="flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2 transition-opacity"
+            :class="values.sharerIds.includes(p.id) ? '' : 'opacity-70'"
           >
-            <span class="i-tabler-check text-xs" />
-          </button>
-        </div>
-      </div>
-    </template>
-
-    <!-- ───────── SHARED ORDER ───────── -->
-    <template v-else>
-      <div class="mt-3 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
-        <span class="eyebrow">Paid by</span>
-        <AvatarBadge v-if="f.payerId" :badge-key="bill.participants.find((p) => p.id === f.payerId)!.badgeKey" :size="28" />
-        <select v-model="f.payerId" class="flex-1 bg-transparent font-600 text-ink focus:outline-none">
-          <option v-for="p in bill.participants" :key="p.id" :value="p.id">{{ p.name }}</option>
-        </select>
-      </div>
-
-      <button
-        type="button"
-        class="mt-3 flex w-full items-center justify-center gap-2 rounded-card border border-dashed border-line-medium bg-surface-subtle py-3 text-sm font-600 text-body"
-        @click="error = 'Receipt scan is coming soon'"
-      >
-        <span class="i-tabler-camera text-ochre" /> Scan receipt · auto-fill items
-      </button>
-
-      <div class="mb-2 mt-5 flex items-center justify-between">
-        <span class="eyebrow">Orders</span>
-        <span class="text-xs text-muted">{{ f.items.length }} items</span>
-      </div>
-      <div class="flex flex-col gap-2">
-        <div v-for="(it, i) in f.items" :key="it.id" class="flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2">
-          <div class="flex-1">
-            <p class="text-sm font-600">{{ it.name }} ×{{ it.qty }}</p>
-            <AvatarStack :participants="it.orderedBy.map((pid) => bill.participants.find((p) => p.id === pid)!).filter(Boolean)" :max="5" :size="18" />
+            <avatar-badge :badge-key="p.badgeKey" :size="28" />
+            <div class="flex-1">
+              <span class="text-sm font-600">{{ p.name }}</span>
+              <p v-if="!values.sharerIds.includes(p.id)" class="text-xs text-muted">not sharing</p>
+            </div>
+            <div v-if="values.sharerIds.includes(p.id) && values.shareMethod === 'exact'" class="w-24">
+              <core-input
+                :model-value="values.exactShares[p.id] ?? 0"
+                numeric
+                type="number"
+                min="0"
+                variant="compact"
+                class="text-right"
+                @update:model-value="setExactShare(p.id, $event as number)"
+              />
+            </div>
+            <money-text v-else-if="values.sharerIds.includes(p.id)" :value="shareOf(p.id)" class="text-sm" />
+            <button
+              type="button"
+              class="flex size-6 items-center justify-center rounded-chip-sm border"
+              :class="values.sharerIds.includes(p.id) ? 'border-forest bg-forest text-white' : 'border-line-medium text-transparent'"
+              @click="toggleSharer(p.id)"
+            >
+              <span class="i-tabler-check text-xs" />
+            </button>
           </div>
-          <MoneyText :value="it.qty * it.priceEach" class="text-sm font-600" />
-          <button type="button" class="text-terracotta" @click="f.items.splice(i, 1)">
-            <span class="i-tabler-x" />
-          </button>
         </div>
+      </template>
+
+      <!-- ───────── SHARED ORDER ───────── -->
+      <template v-else>
+        <div class="mt-3 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
+          <span class="eyebrow">Paid by</span>
+          <avatar-badge v-if="values.payerId" :badge-key="badgeOf(values.payerId)!" :size="28" />
+          <core-select v-model="payerIdModel" :options="participantOptions" variant="bare" />
+        </div>
+
         <button
           type="button"
-          class="flex items-center justify-center gap-2 rounded-card border border-dashed border-line-medium bg-surface-subtle py-2.5 text-sm font-600 text-forest"
-          @click="sheetOpen = true"
+          class="mt-3 flex w-full items-center justify-center gap-2 rounded-card border border-dashed border-line-medium bg-surface-subtle py-3 text-sm font-600 text-body"
+          @click="error = 'Receipt scan is coming soon'"
         >
-          <span class="i-tabler-plus" /> Add order
+          <span class="i-tabler-camera text-ochre" /> Scan receipt · auto-fill items
         </button>
-      </div>
 
-      <div class="mt-5">
-        <span class="eyebrow">Fees &amp; discount</span>
-        <div class="mt-2 flex flex-col gap-2 rounded-card border border-line-light bg-surface-card p-3 text-sm">
-          <label class="flex items-center justify-between gap-2">
-            <span>Tax (%)</span>
-            <input v-model.number="f.fees.taxPercent" type="number" min="0" class="w-24 rounded-control bg-surface-input px-2 py-1 text-right" />
-          </label>
-          <label class="flex items-center justify-between gap-2">
-            <span>Service</span>
-            <input v-model.number="f.fees.service" type="number" min="0" class="w-28 rounded-control bg-surface-input px-2 py-1 text-right" />
-          </label>
-          <label class="flex items-center justify-between gap-2">
-            <span>Other fee</span>
-            <input v-model.number="f.fees.other" type="number" min="0" class="w-28 rounded-control bg-surface-input px-2 py-1 text-right" />
-          </label>
-          <label class="flex items-center justify-between gap-2 text-terracotta">
-            <span>Discount</span>
-            <input v-model.number="f.discount" type="number" min="0" class="w-28 rounded-control bg-surface-input px-2 py-1 text-right" />
-          </label>
+        <div class="mb-2 mt-5 flex items-center justify-between">
+          <span class="eyebrow">Orders</span>
+          <span class="text-xs text-muted">{{ values.items.length }} items</span>
         </div>
-      </div>
+        <div class="flex flex-col gap-2">
+          <div v-for="(it, i) in values.items" :key="it.id" class="flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2">
+            <div class="flex-1">
+              <p class="text-sm font-600">{{ it.name }} ×{{ it.qty }}</p>
+              <avatar-stack :participants="it.orderedBy.map((pid) => participants.find((p) => p.id === pid)!).filter(Boolean)" :max="5" :size="18" />
+            </div>
+            <money-text :value="it.qty * it.priceEach" class="text-sm font-600" />
+            <button type="button" class="text-terracotta" @click="removeItem(i)">
+              <span class="i-tabler-x" />
+            </button>
+          </div>
+          <button
+            type="button"
+            class="flex items-center justify-center gap-2 rounded-card border border-dashed border-line-medium bg-surface-subtle py-2.5 text-sm font-600 text-forest"
+            @click="sheetOpen = true"
+          >
+            <span class="i-tabler-plus" /> Add order
+          </button>
+        </div>
 
-      <div class="rule-double mt-4 flex items-center justify-between pt-3">
-        <span class="eyebrow">Subtotal</span>
-        <MoneyText :value="sharedSubtotal" class="text-xl font-600" />
-      </div>
+        <div class="mt-5">
+          <span class="eyebrow">Fees &amp; discount</span>
+          <div class="mt-2 flex flex-col gap-2 rounded-card border border-line-light bg-surface-card p-3 text-sm">
+            <div class="flex items-center justify-between gap-2">
+              <span>Tax (%)</span>
+              <div class="w-24"><core-input name="fees.taxPercent" numeric type="number" min="0" variant="compact" class="text-right" /></div>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span>Service</span>
+              <div class="w-28"><core-input name="fees.service" numeric type="number" min="0" variant="compact" class="text-right" /></div>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span>Other fee</span>
+              <div class="w-28"><core-input name="fees.other" numeric type="number" min="0" variant="compact" class="text-right" /></div>
+            </div>
+            <div class="flex items-center justify-between gap-2 text-terracotta">
+              <span>Discount</span>
+              <div class="w-28"><core-input name="discount" numeric type="number" min="0" variant="compact" class="text-right" /></div>
+            </div>
+          </div>
+        </div>
 
-      <AddOrderItem v-model:open="sheetOpen" :participants="bill.participants" @save="onSaveItem" />
-    </template>
+        <div class="rule-double mt-4 flex items-center justify-between pt-3">
+          <span class="eyebrow">Subtotal</span>
+          <money-text :value="sharedSubtotal" class="text-xl font-600" />
+        </div>
 
-    <p v-if="error" class="chip-neg mt-4">{{ error }}</p>
+        <add-order-item v-model:open="sheetOpen" :participants="participants" @save="onSaveItem" />
+      </template>
+
+      <p v-if="error" class="chip-neg mt-4">{{ error }}</p>
+    </form>
   </main>
 
-  <div class="border-t border-line-light bg-surface-card px-5 py-3">
-    <button class="btn-forest w-full" :disabled="submitting" @click="submit">
-      {{ editId ? 'Save changes' : 'Add expense' }}
-    </button>
+  <div class="flex-none border-t border-line-light bg-surface-card px-5 py-3">
+    <div class="app-col">
+      <core-button block :loading="isSubmitting" @click="onSubmit">
+        {{ editId ? 'Save changes' : 'Add expense' }}
+      </core-button>
+    </div>
   </div>
 </template>

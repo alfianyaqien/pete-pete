@@ -33,12 +33,12 @@ function save() {
 <template>
   <div class="min-h-screen p-6" style="background: var(--pp-canvas)">
     <div class="no-print mx-auto mb-4 flex max-w-[794px] items-center justify-between">
-      <button class="btn-ghost" @click="navigateTo(`/bill/${id}/settle`)">
+      <core-button variant="ghost" @click="navigateTo(`/bill/${id}/settle`)">
         <span class="i-tabler-arrow-left" /> Back
-      </button>
-      <button class="btn-terra" @click="save">
+      </core-button>
+      <core-button variant="danger" @click="save">
         <span class="i-tabler-download" /> Download PDF
-      </button>
+      </core-button>
     </div>
 
     <article
@@ -52,7 +52,7 @@ function save() {
         <header class="flex items-start justify-between">
           <div>
             <div class="flex items-center gap-2">
-              <PpLogo :size="24" />
+              <pp-logo :size="24" />
               <span class="text-xs font-700 uppercase tracking-[.2em]">PetePete</span>
             </div>
             <h1 class="mt-2 font-serif text-3xl font-700">{{ bill.title }}</h1>
@@ -139,17 +139,6 @@ function save() {
 </template>
 
 <style scoped>
-.btn-terra {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  border-radius: 10px;
-  background: #a6492c;
-  color: #fff;
-  padding: 0.625rem 1rem;
-  font-weight: 600;
-  font-size: 0.875rem;
-}
 @media print {
   .no-print {
     display: none !important;

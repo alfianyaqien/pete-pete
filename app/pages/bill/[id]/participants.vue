@@ -36,16 +36,16 @@ function onDone(updated: Bill) {
 
 <template>
   <template v-if="bill">
-    <ScreenHeader back eyebrow="Roster" title="Souls on this trip" @back="navigateTo(`/bill/${id}`)">
+    <screen-header back eyebrow="Roster" title="Souls on this trip" @back="navigateTo(`/bill/${id}`)">
       <div class="mt-3 flex items-center gap-3">
-        <AvatarStack :participants="bill.participants" :max="7" :size="28" />
+        <avatar-stack :participants="bill.participants" :max="7" :size="28" />
         <span class="text-xs text-muted">
           {{ bill.participants.length }} souls · {{ frontedCount }} fronted cash
         </span>
       </div>
-    </ScreenHeader>
+    </screen-header>
 
-    <main class="flex-1 overflow-y-auto px-5 pb-28 pt-4">
+    <main class="app-col flex-1 overflow-y-auto px-5 pb-28 pt-4">
       <div class="flex flex-col gap-2">
         <div
           v-for="p in bill.participants"
@@ -53,7 +53,7 @@ function onDone(updated: Bill) {
           class="flex items-center gap-3 rounded-card border bg-surface-card px-3 py-2.5"
           :class="p.id === me?.id ? 'border-forest' : 'border-line-light'"
         >
-          <AvatarBadge :badge-key="p.badgeKey" :size="38" />
+          <avatar-badge :badge-key="p.badgeKey" :size="38" />
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
               <span class="text-sm font-600 text-ink">{{ p.name }}</span>
@@ -114,15 +114,15 @@ function onDone(updated: Bill) {
       </div>
     </main>
 
-    <BottomNav active="users" :bill-id="id" />
+    <bottom-nav active="users" :bill-id="id" />
 
-    <AddParticipantSheet
+    <add-participant-sheet
       v-model:open="addOpen"
       :bill-id="id"
       :taken="takenBadges"
       @done="onDone"
     />
-    <EditParticipantSheet
+    <edit-participant-sheet
       v-model:open="editOpen"
       :bill-id="id"
       :participant="editTarget"

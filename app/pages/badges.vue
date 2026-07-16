@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Verification gallery for the 30 trail-badge avatars. Temporary; the picker
-// grid (Add/Edit participant sheets) reuses <AvatarBadge> later.
+// grid (Add/Edit participant sheets) reuses <avatar-badge> later.
 import { AVATARS } from '~~/shared/avatars'
 </script>
 
@@ -12,7 +12,7 @@ import { AVATARS } from '~~/shared/avatars'
 
     <div class="grid grid-cols-6 gap-x-3 gap-y-5">
       <div v-for="a in AVATARS" :key="a.key" class="text-center">
-        <AvatarBadge :badge-key="a.key" :size="60" />
+        <avatar-badge :badge-key="a.key" :size="60" />
         <div class="text-[11px] text-body mt-1">{{ a.label }}</div>
       </div>
     </div>

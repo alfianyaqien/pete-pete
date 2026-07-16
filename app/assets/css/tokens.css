@@ -36,3 +36,33 @@ body {
 .rule-double {
   border-top: 1.5px double #c9b894;
 }
+
+/* ── kill native form chrome ──────────────────────────────────────────────
+   Every input/select in the app is styled via the `field*`/`select*` UnoCSS
+   shortcuts; this is the safety-net reset so nothing ever falls back to the
+   browser/OS default look (iOS shadows, Chrome's number spinner, native
+   select arrow, focus outlines that clash with the parchment palette). */
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+select::-ms-expand {
+  display: none;
+}
