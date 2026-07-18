@@ -5,7 +5,7 @@
        width-limited via the `app-col` shortcut on each screen's inner content,
        not by boxing the shell. -->
   <div
-    class="relative flex h-[100dvh] w-full flex-col overflow-hidden"
+    class="relative flex min-h-[100dvh] w-full flex-col overflow-hidden"
     style="background: var(--pp-screen-mobile)"
   >
     <slot />

@@ -239,7 +239,6 @@ const onSubmit = handleSubmit(async () => {
           <avatar-badge v-if="values.payerId" :badge-key="badgeOf(values.payerId)!" :size="34" />
           <div class="flex-1">
             <core-select v-model="payerIdModel" :options="participantOptions" variant="bare" />
-            <p class="text-xs text-muted">fronts the whole amount</p>
           </div>
           <money-text :value="values.amount" class="text-sm font-600" />
         </div>
@@ -275,7 +274,7 @@ const onSubmit = handleSubmit(async () => {
             · each owes {{ nameOf(values.payerId) }} {{ formatRupiah(equalSplit[values.sharerIds[0]] ?? 0) }}
           </template>
         </div>
-        <button type="button" class="mt-3 text-xs font-600 text-forest" @click="selectAllSharers">
+        <button type="button" class="mt-3 text-xs font-600 text-forest appearance-none border-solid border rounded-md px-2 py-1 border-line-medium bg-surface-card block ml-auto" @click="selectAllSharers">
           <span class="i-tabler-check" /> {{ allShared ? 'Clear all' : 'Select all' }}
         </button>
         <div class="mt-2 flex flex-col gap-2">
@@ -288,7 +287,6 @@ const onSubmit = handleSubmit(async () => {
             <avatar-badge :badge-key="p.badgeKey" :size="28" />
             <div class="flex-1">
               <span class="text-sm font-600">{{ p.name }}</span>
-              <p v-if="!values.sharerIds.includes(p.id)" class="text-xs text-muted">not sharing</p>
             </div>
             <div v-if="values.sharerIds.includes(p.id) && values.shareMethod === 'exact'" class="w-24">
               <core-input
@@ -304,7 +302,7 @@ const onSubmit = handleSubmit(async () => {
             <money-text v-else-if="values.sharerIds.includes(p.id)" :value="shareOf(p.id)" class="text-sm" />
             <button
               type="button"
-              class="flex size-6 items-center justify-center rounded-chip-sm border"
+              class="flex size-6 items-center justify-center rounded-chip-sm border appearance-none border-solid"
               :class="values.sharerIds.includes(p.id) ? 'border-forest bg-forest text-white' : 'border-line-medium text-transparent'"
               @click="toggleSharer(p.id)"
             >
@@ -341,7 +339,7 @@ const onSubmit = handleSubmit(async () => {
               <avatar-stack :participants="it.orderedBy.map((pid) => participants.find((p) => p.id === pid)!).filter(Boolean)" :max="5" :size="18" />
             </div>
             <money-text :value="it.qty * it.priceEach" class="text-sm font-600" />
-            <button type="button" class="text-terracotta" @click="removeItem(i)">
+            <button type="button" class="btn-remove" @click="removeItem(i)">
               <span class="i-tabler-x" />
             </button>
           </div>
@@ -388,7 +386,7 @@ const onSubmit = handleSubmit(async () => {
     </form>
   </main>
 
-  <div class="flex-none border-t border-line-light bg-surface-card px-5 py-3">
+  <div class="flex-none border-t border-line-light bg-surface-card px-5 py-3 fixed bottom-0 left-0 w-full">
     <div class="app-col">
       <core-button block :loading="isSubmitting" @click="onSubmit">
         {{ editId ? 'Save changes' : 'Add expense' }}

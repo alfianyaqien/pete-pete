@@ -11,7 +11,7 @@ const { handleSubmit, isSubmitting } = useForm({
 const { fields, push, remove } = useFieldArray<ParticipantInput>('participants')
 
 // preview badges follow the same order the server auto-assigns (BADGE_KEYS[i])
-const previewBadge = (i: number) => BADGE_KEYS[i % BADGE_KEYS.length]
+const previewBadge = (i: number) => BADGE_KEYS[i % BADGE_KEYS.length]!
 
 const serverError = ref('')
 const onSubmit = handleSubmit(async (values) => {
@@ -44,7 +44,7 @@ const onSubmit = handleSubmit(async (values) => {
             <div class="flex-1">
               <core-input :name="`participants[${i}].name`" variant="bare" placeholder="Name" />
             </div>
-            <button type="button" aria-label="Remove" class="text-terracotta" @click="remove(i)">
+            <button type="button" aria-label="Remove" class="btn-remove" @click="remove(i)">
               <span class="i-tabler-x" />
             </button>
           </div>

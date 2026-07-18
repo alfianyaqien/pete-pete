@@ -23,6 +23,7 @@ const props = withDefaults(
   { type: 'text', variant: 'default' },
 )
 const emit = defineEmits<{ 'update:modelValue': [string | number] }>()
+const attrs = useAttrs()
 
 // Only bind to a form field when a name is supplied.
 const field = props.name ? useField<string | number>(() => props.name!) : null
@@ -51,11 +52,15 @@ const fieldClass = computed(
       bare: 'field-bare',
     })[props.variant],
 )
+const inputAttrs = computed(() => {
+  const { class: _class, style: _style, ...rest } = attrs
+  return rest
+})
 const error = computed(() => field?.errorMessage.value)
 </script>
 
 <template>
-  <label class="block">
+  <label class="block" :class="attrs.class" :style="attrs.style">
     <span v-if="label" class="eyebrow">{{ label }}</span>
     <div class="relative" :class="label ? 'mt-1.5' : ''">
       <input
@@ -64,7 +69,7 @@ const error = computed(() => field?.errorMessage.value)
         :placeholder="placeholder"
         :class="[fieldClass, error ? 'border-terracotta' : '']"
         :value="value"
-        v-bind="$attrs"
+        v-bind="inputAttrs"
         @input="onInput"
       />
       <slot name="suffix" />

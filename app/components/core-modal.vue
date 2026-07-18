@@ -25,8 +25,8 @@ function close() {
             <slot name="header">
               <h2 class="font-serif text-lg font-600">{{ title }}</h2>
             </slot>
-            <button type="button" aria-label="Close" @click="close">
-              <span class="i-tabler-x text-muted" />
+            <button type="button" aria-label="Close" @click="close" class="appearance-none border-none bg-transparent">
+              <span class="i-tabler-x text-muted size-5" />
             </button>
           </div>
           <slot />

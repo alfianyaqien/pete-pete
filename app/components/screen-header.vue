@@ -7,11 +7,11 @@ defineEmits<{ back: [] }>()
   <header class="relative flex-none overflow-hidden bg-surface-header">
     <contour-overlay />
     <div class="app-col relative px-5 pt-3 pb-4">
-      <div class="flex items-start gap-3">
+      <div class="flex items-center gap-3">
         <button
           v-if="back"
           type="button"
-          class="mt-0.5 flex size-9 flex-none items-center justify-center rounded-control bg-surface-card/70 text-ink"
+          class="mt-0.5 flex size-9 flex-none items-center justify-center rounded-control bg-surface-card/70 text-ink border-line-medium border-solid"
           aria-label="Back"
           @click="$emit('back')"
         >
@@ -21,7 +21,7 @@ defineEmits<{ back: [] }>()
         <div class="min-w-0 flex-1">
           <p v-if="eyebrow" class="eyebrow">{{ eyebrow }}</p>
           <slot name="title">
-            <h1 v-if="title" class="font-serif text-2xl font-700 leading-tight text-ink">
+            <h1 v-if="title" class="font-serif text-2xl font-700 leading-tight text-ink m-0">
               {{ title }}
             </h1>
           </slot>

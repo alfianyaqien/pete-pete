@@ -15,7 +15,7 @@ const overflow = computed(() => Math.max(0, props.participants.length - props.ma
     <div
       v-for="(p, i) in shown"
       :key="p.id"
-      class="rounded-full ring-2 ring-surface-card"
+      class="rounded-full ring-2 ring-surface-card size-[28px]"
       :style="{ marginLeft: i ? '-8px' : '0', zIndex: shown.length - i }"
     >
       <avatar-badge :badge-key="p.badgeKey" :size="size" />

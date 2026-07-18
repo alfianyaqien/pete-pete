@@ -31,7 +31,7 @@ async function onCopy() {
       </div>
       <button
         type="button"
-        class="mt-3 inline-flex items-center gap-1.5 rounded-control border border-line-medium bg-surface-card px-3 py-1.5 text-xs font-600 text-ink"
+        class="mt-3 inline-flex items-center gap-1.5 rounded-control border border-line-medium bg-surface-card px-3 py-1.5 text-xs font-600 text-ink border-solid"
         @click="onCopy"
       >
         <span :class="copied ? 'i-tabler-check text-forest' : 'i-tabler-link'" />
@@ -56,7 +56,7 @@ async function onCopy() {
         <p class="mt-2 text-sm text-body">No entries yet. Add your first expense.</p>
       </div>
 
-      <core-button variant="ghost" block :to="`/bill/${id}/settle`" class="mt-5">
+      <core-button variant="forest" block :to="`/bill/${id}/settle`" class="mt-5">
         <span class="i-tabler-arrow-right" /> Settle up
       </core-button>
 

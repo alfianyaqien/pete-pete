@@ -88,7 +88,7 @@ function onDone(updated: Bill) {
               }}
             </p>
           </div>
-          <button type="button" class="text-muted" aria-label="Edit" @click="openEdit(p)">
+          <button type="button" class="border border-line-medium bg-surface-card border-solid rounded-md text-muted" aria-label="Edit" @click="openEdit(p)">
             <span class="i-tabler-pencil text-sm" />
           </button>
         </div>

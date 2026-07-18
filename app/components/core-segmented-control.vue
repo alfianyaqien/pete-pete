@@ -13,7 +13,7 @@ defineProps<{
       v-for="o in options"
       :key="String(o.value)"
       type="button"
-      class="flex flex-1 items-center justify-center gap-1 rounded-chip py-2 text-sm font-600 transition-colors"
+      class="flex flex-1 items-center justify-center gap-1 rounded-chip py-2 text-sm font-600 transition-colors appearance-none border-none"
       :class="
         model === o.value
           ? accent === 'ochre'
