@@ -54,14 +54,11 @@ function removePayer(i: number) {
         />
       </div>
       <div class="w-28">
-        <core-input
+        <core-money-input
           :model-value="p.amount"
-          numeric
-          type="number"
-          min="0"
           variant="compact"
           class="text-right"
-          @update:model-value="setAmount(i, $event as number)"
+          @update:model-value="setAmount(i, $event)"
         />
       </div>
       <button

@@ -234,7 +234,9 @@ const onSubmit = handleSubmit(async () => {
 
       <!-- ───────── SIMPLE ───────── -->
       <template v-if="values.type === 'simple'">
-        <core-input name="amount" numeric type="number" min="0" label="Amount" placeholder="320000" class="mt-3" />
+        <div class="mt-3">
+          <core-money-input name="amount" label="Amount" placeholder="320000" />
+        </div>
 
         <!-- Step 1 -->
         <div class="mt-5 flex items-center gap-2">
@@ -282,14 +284,11 @@ const onSubmit = handleSubmit(async () => {
               <span class="text-sm font-600">{{ p.name }}</span>
             </div>
             <div v-if="values.sharerIds.includes(p.id) && values.shareMethod === 'exact'" class="w-24">
-              <core-input
+              <core-money-input
                 :model-value="values.exactShares[p.id] ?? 0"
-                numeric
-                type="number"
-                min="0"
                 variant="compact"
                 class="text-right"
-                @update:model-value="setExactShare(p.id, $event as number)"
+                @update:model-value="setExactShare(p.id, $event)"
               />
             </div>
             <money-text v-else-if="values.sharerIds.includes(p.id)" :value="shareOf(p.id)" class="text-sm" />
@@ -360,15 +359,15 @@ const onSubmit = handleSubmit(async () => {
             </div>
             <div class="flex items-center justify-between gap-2">
               <span>Service</span>
-              <div class="w-28"><core-input name="fees.service" numeric type="number" min="0" variant="compact" class="text-right" /></div>
+              <div class="w-28"><core-money-input name="fees.service" variant="compact" class="text-right" /></div>
             </div>
             <div class="flex items-center justify-between gap-2">
               <span>Other fee</span>
-              <div class="w-28"><core-input name="fees.other" numeric type="number" min="0" variant="compact" class="text-right" /></div>
+              <div class="w-28"><core-money-input name="fees.other" variant="compact" class="text-right" /></div>
             </div>
             <div class="flex items-center justify-between gap-2 text-terracotta">
               <span>Discount</span>
-              <div class="w-28"><core-input name="discount" numeric type="number" min="0" variant="compact" class="text-right" /></div>
+              <div class="w-28"><core-money-input name="discount" variant="compact" class="text-right" /></div>
             </div>
           </div>
         </div>

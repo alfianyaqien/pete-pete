@@ -69,14 +69,7 @@ const save = handleSubmit((v) => {
           </div>
         </div>
         <div class="flex-1">
-          <core-input
-            name="priceEach"
-            numeric
-            type="number"
-            min="0"
-            label="Price each"
-            placeholder="45000"
-          />
+          <core-money-input name="priceEach" label="Price each" placeholder="45000" />
         </div>
       </div>
 

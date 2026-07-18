@@ -1,1 +1,0 @@
-import{_ as o,o as l,c as r,O as s}from"./Dcxk-Bzh.js";const t={},c={class:"relative flex h-[100dvh] w-full flex-col overflow-hidden",style:{background:"var(--pp-screen-mobile)"}};function a(e,n){return l(),r("div",c,[s(e.$slots,"default")])}const f=o(t,[["render",a]]);export{f as default};
