@@ -1,0 +1,110 @@
+# Supabase setup
+
+PetePete uses a single Postgres table (`bills`) with two JSONB columns. There is
+**no auth** — the app reaches Supabase only from Nitro server routes using the
+**service-role** key, and the table has RLS enabled with no policies so nothing
+else can touch it.
+
+You need two values from your Supabase project:
+
+- `NUXT_SUPABASE_URL` — the project REST URL, e.g. `https://abcdxyz.supabase.co`
+- `NUXT_SUPABASE_SERVICE_KEY` — the **service_role** key (⚠️ secret, server-only —
+  never expose it to the browser or commit it)
+
+---
+
+## 1. Create the project
+
+1. Go to <https://supabase.com/dashboard> and **New project**.
+2. Pick an org, name it (e.g. `petepete`), set a strong **database password**
+   (save it — you need it for the CLI/psql route), choose a region close to your
+   users, and create.
+
+## 2. Grab the URL + service key
+
+Project → **Settings → API**:
+
+- **Project URL** → `NUXT_SUPABASE_URL`
+- **Project API keys → `service_role` → Reveal** → `NUXT_SUPABASE_SERVICE_KEY`
+
+## 3. Apply the schema
+
+Pick **one** of the following. All three run the same SQL from
+[`supabase/migrations/0001_init.sql`](../supabase/migrations/0001_init.sql).
+
+### Option A — Dashboard SQL Editor (simplest, no tooling)
+
+Project → **SQL Editor → New query**, paste this, and **Run**:
+
+```sql
+create extension if not exists "pgcrypto";
+
+create table if not exists public.bills (
+  id            uuid primary key default gen_random_uuid(),
+  title         text not null,
+  created_at    timestamptz not null default now(),
+  lunas         boolean not null default false,
+  participants  jsonb not null default '[]'::jsonb,
+  entries       jsonb not null default '[]'::jsonb
+);
+
+alter table public.bills enable row level security;
+```
+
+### Option B — psql (scriptable)
+
+Get the connection string from Project → **Settings → Database → Connection
+string → URI** (use the **direct** connection, not the pooler, for DDL), then:
+
+```bash
+export SUPABASE_DB_URL='postgresql://postgres:[YOUR-DB-PASSWORD]@db.<ref>.supabase.co:5432/postgres'
+./scripts/apply-schema.sh          # runs supabase/migrations/*.sql in order
+```
+
+Requires the `psql` client (`sudo apt install postgresql-client` on Ubuntu/WSL).
+
+### Option C — Supabase CLI
+
+```bash
+npx supabase login
+npx supabase link --project-ref <your-project-ref>
+npx supabase db push
+```
+
+> Note: the CLI expects timestamped migration filenames. If `db push` ignores
+> `0001_init.sql`, either rename it to `<UTC-timestamp>_init.sql`
+> (e.g. `20260101000000_init.sql`) or just use Option A/B.
+
+## 4. Point the app at Supabase
+
+Local dev — put the values in `.env` (gitignored; see `.env.example`):
+
+```bash
+NUXT_SUPABASE_URL=https://<ref>.supabase.co
+NUXT_SUPABASE_SERVICE_KEY=<service_role key>
+```
+
+Then run the app. With these set, the API uses Supabase; without them it falls
+back to an in-memory store (data resets on restart), so you can develop with no
+Supabase at all.
+
+## 5. Verify
+
+```bash
+# create a bill, then read it back — should return the same id from Supabase
+curl -s -X POST http://localhost:3000/api/bills \
+  -H 'content-type: application/json' \
+  -d '{"title":"Test","participants":[{"name":"A"},{"name":"B"}]}'
+```
+
+Confirm a row appears in Project → **Table editor → bills**.
+
+---
+
+### Schema notes
+
+- `participants` and `entries` are **JSONB** — their internal shape (payers,
+  sharers, order items, per-entry `date`, etc.) is validated by the app
+  (`shared/schemas.ts`), not the database, so **evolving the entry shape needs
+  no DB migration**.
+- Only add a real migration when you change the **columns** of `bills`.
