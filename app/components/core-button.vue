@@ -25,11 +25,11 @@ const classes = computed(() => [
 </script>
 
 <template>
-  <NuxtLink v-if="to" :to="to" :class="classes">
+  <NuxtLink v-if="to" :to="to" :class="['no-underline', classes]">
     <slot />
   </NuxtLink>
-  <button v-else :type="type" :class="classes" :disabled="disabled || loading">
-    <span v-if="loading" class="i-tabler-loader-2 animate-spin" />
+  <button v-else :type="type" :class="[classes]" :disabled="disabled || loading">
+    <span v-if="loading" class="i-tabler-loader-2 animate-spin " />
     <slot />
   </button>
 </template>

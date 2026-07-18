@@ -2,6 +2,8 @@
 // Verification gallery for the 30 trail-badge avatars. Temporary; the picker
 // grid (Add/Edit participant sheets) reuses <avatar-badge> later.
 import { AVATARS } from '~~/shared/avatars'
+
+useHead({ title: 'Trail Badges' })
 </script>
 
 <template>

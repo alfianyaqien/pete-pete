@@ -4,6 +4,7 @@ import { billStats } from '~~/shared/stats'
 import { formatRupiah } from '~~/shared/format'
 
 definePageMeta({ layout: false })
+useHead({ title: 'Settlement Image' })
 
 const route = useRoute()
 const id = route.params.id as string

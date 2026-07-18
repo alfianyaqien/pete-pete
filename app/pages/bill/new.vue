@@ -10,6 +10,8 @@ const { handleSubmit, isSubmitting } = useForm({
 })
 const { fields, push, remove } = useFieldArray<ParticipantInput>('participants')
 
+useHead({ title: 'Create Bill' })
+
 // preview badges follow the same order the server auto-assigns (BADGE_KEYS[i])
 const previewBadge = (i: number) => BADGE_KEYS[i % BADGE_KEYS.length]!
 

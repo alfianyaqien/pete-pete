@@ -8,6 +8,9 @@ const { data: bill } = await useBill(id)
 const { me, setMe } = useIdentity(bill)
 
 const stats = computed(() => (bill.value ? billStats(bill.value) : null))
+
+useHead({ title: 'Settle Up' })
+
 const result = computed(() =>
   bill.value ? settleBill(bill.value) : { balances: [], transfers: [] },
 )

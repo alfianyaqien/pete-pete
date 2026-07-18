@@ -103,8 +103,8 @@ export default defineConfig({
       'bg-surface-card border border-line-light rounded-card shadow-card',
     // buttons
     'btn-base':
-      'inline-flex items-center justify-center gap-1.5 rounded-control font-sans font-600 text-sm px-4 py-2.5 transition-colors disabled:opacity-60',
-    'btn-forest': 'btn-base bg-forest text-surface-card hover:bg-forest-700',
+      'inline-flex items-center justify-center gap-1.5 rounded-control font-sans font-600 text-sm px-4 py-2.5 transition-colors disabled:opacity-60 cursor-pointer border-solid',
+    'btn-forest': 'btn-base bg-forest text-surface-card hover:bg-forest-700 border-none',
     'btn-ochre': 'btn-base bg-ochre text-white hover:bg-ochre-text',
     'btn-ghost':
       'btn-base bg-transparent border border-line-medium text-ink hover:bg-surface-subtle',
@@ -139,6 +139,7 @@ export default defineConfig({
   safelist: [
     // bill-scoped nav builds icon classes dynamically (i-tabler-${icon}), so
     // its icons must be safelisted or UnoCSS won't generate them.
+    'i-tabler-home',
     'i-tabler-receipt',
     'i-tabler-users',
     'i-tabler-arrows-left-right',

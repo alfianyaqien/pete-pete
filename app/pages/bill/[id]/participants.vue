@@ -8,6 +8,8 @@ const id = route.params.id as string
 const { data: bill, refresh } = await useBill(id)
 const { me } = useIdentity(bill)
 
+useHead({ title: 'Participants' })
+
 const balances = computed(() => (bill.value ? computeBalances(bill.value) : []))
 const balanceOf = (pid: string) => balances.value.find((b) => b.participantId === pid)
 const frontedCount = computed(() => balances.value.filter((b) => b.paid > 0).length)

@@ -9,6 +9,8 @@ const { data: bill } = await useBill(id)
 
 const stats = computed(() => (bill.value ? billStats(bill.value) : null))
 
+useHead({ title: computed(() => bill.value?.title ?? 'Bill') })
+
 const copied = ref(false)
 async function onCopy() {
   copied.value = await copyShareLink(id)
@@ -39,8 +41,13 @@ async function onCopy() {
       </button>
     </screen-header>
 
-    <main class="app-col relative flex-1 overflow-y-auto px-5 pb-28 pt-4">
-      <p class="eyebrow mb-2">Entries</p>
+    <main class="app-col flex-1 overflow-y-auto px-5 pb-28 pt-4">
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <p class="eyebrow">Entries</p>
+        <core-button :to="`/bill/${id}/add`">
+          <span class="i-tabler-plus" /> Add expense
+        </core-button>
+      </div>
 
       <div v-if="bill.entries.length" class="flex flex-col gap-2.5">
         <entry-card
@@ -55,19 +62,6 @@ async function onCopy() {
         <span class="i-tabler-receipt mx-auto block text-2xl text-muted" />
         <p class="mt-2 text-sm text-body">No entries yet. Add your first expense.</p>
       </div>
-
-      <core-button variant="forest" block :to="`/bill/${id}/settle`" class="mt-5">
-        <span class="i-tabler-arrow-right" /> Settle up
-      </core-button>
-
-      <!-- FAB -->
-      <NuxtLink
-        :to="`/bill/${id}/add`"
-        class="absolute bottom-6 right-5 z-20 flex size-14 items-center justify-center rounded-full bg-ochre text-white shadow-card"
-        aria-label="Add expense"
-      >
-        <span class="i-tabler-plus text-2xl" />
-      </NuxtLink>
     </main>
 
     <bottom-nav active="entries" :bill-id="id" />

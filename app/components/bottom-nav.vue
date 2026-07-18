@@ -10,6 +10,7 @@ const props = defineProps<{
 }>()
 
 const items = computed(() => [
+  { key: 'home', icon: 'home', to: '/', label: 'Home' },
   { key: 'entries', icon: 'receipt', to: `/bill/${props.billId}`, label: 'Entries' },
   { key: 'souls', icon: 'users', to: `/bill/${props.billId}/participants`, label: 'Souls' },
   { key: 'settle', icon: 'arrows-left-right', to: `/bill/${props.billId}/settle`, label: 'Settle' },
@@ -29,7 +30,7 @@ const items = computed(() => [
         v-for="it in items"
         :key="it.key"
         :to="it.to"
-        class="flex items-center gap-1.5 rounded-full px-3 py-2 transition-colors"
+        class="flex items-center gap-1.5 rounded-full px-3 py-2 transition-colors no-underline"
         :class="active === it.key ? 'bg-forest text-surface-card' : 'text-muted hover:text-ink'"
         :aria-label="it.label"
       >

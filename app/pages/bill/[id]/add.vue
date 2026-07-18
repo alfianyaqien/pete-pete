@@ -9,6 +9,8 @@ const route = useRoute()
 const id = route.params.id as string
 const editId = route.query.entry as string | undefined
 const { data: bill } = await useBill(id)
+
+useHead({ title: editId ? 'Edit Expense' : 'Add Expense' })
 const { me } = useIdentity(bill)
 
 interface ItemRow extends OrderItemDraft {

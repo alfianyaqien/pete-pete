@@ -5,6 +5,7 @@ import { formatRupiah, formatAmount, formatDateShort } from '~~/shared/format'
 import type { Entry } from '~~/shared/types'
 
 definePageMeta({ layout: false })
+useHead({ title: 'PDF Summary' })
 
 const route = useRoute()
 const id = route.params.id as string
