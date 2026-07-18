@@ -1,24 +1,22 @@
 <script setup lang="ts">
+/**
+ * Bill-scoped floating nav. The app has no login, so there is no global
+ * navigation — this only appears inside a bill and only links to that bill's
+ * own screens (Entries / Souls / Settle).
+ */
 const props = defineProps<{
-  active: 'home' | 'receipt' | 'users' | 'settings'
-  billId?: string
+  active: 'entries' | 'souls' | 'settle'
+  billId: string
 }>()
 
 const items = computed(() => [
-  { key: 'home', icon: 'mountain', to: '/', label: 'Trips' },
-  { key: 'receipt', icon: 'receipt', to: props.billId ? `/bill/${props.billId}` : '/', label: 'Ledger' },
-  {
-    key: 'users',
-    icon: 'users',
-    to: props.billId ? `/bill/${props.billId}/participants` : '/',
-    label: 'Souls',
-  },
-  { key: 'settings', icon: 'settings', to: '/', label: 'Settings' },
+  { key: 'entries', icon: 'receipt', to: `/bill/${props.billId}`, label: 'Entries' },
+  { key: 'souls', icon: 'users', to: `/bill/${props.billId}/participants`, label: 'Souls' },
+  { key: 'settle', icon: 'arrows-left-right', to: `/bill/${props.billId}/settle`, label: 'Settle' },
 ])
 </script>
 
 <template>
-  <!-- Floating navbar, centered at the bottom over the content. -->
   <nav
     class="fixed bottom-5 left-1/2 z-40 -translate-x-1/2"
     style="padding-bottom: env(safe-area-inset-bottom)"

@@ -70,7 +70,7 @@ async function onCopy() {
       </NuxtLink>
     </main>
 
-    <bottom-nav active="receipt" :bill-id="id" />
+    <bottom-nav active="entries" :bill-id="id" />
   </template>
 
   <div v-else class="flex flex-1 items-center justify-center p-8 text-center text-muted">

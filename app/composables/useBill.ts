@@ -5,11 +5,6 @@ export function useBill(id: string) {
   return useFetch<Bill>(`/api/bills/${id}`, { key: `bill:${id}` })
 }
 
-/** List all bills for the Home dashboard. */
-export function useBills() {
-  return useFetch<Bill[]>('/api/bills', { key: 'bills' })
-}
-
 /**
  * Resolve "who the viewer is" for a bill from the identity store, falling back
  * to the first participant. Also exposes a setter for the identity chip.

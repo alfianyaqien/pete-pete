@@ -115,7 +115,7 @@ function onDone(updated: Bill) {
       </div>
     </main>
 
-    <bottom-nav active="users" :bill-id="id" />
+    <bottom-nav active="souls" :bill-id="id" />
 
     <add-participant-sheet
       v-model:open="addOpen"

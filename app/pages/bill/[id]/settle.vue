@@ -125,10 +125,9 @@ const shareOpen = ref(false)
           Everyone is square — nothing to settle.
         </p>
       </div>
-    </main>
 
-    <div class="flex-none border-t border-line-light bg-surface-card px-5 py-3">
-      <div class="app-col flex gap-2">
+      <!-- actions -->
+      <div class="mt-6 flex gap-2">
         <core-button class="flex-1" @click="shareToWhatsApp(settlementRecap(bill, transfers))">
           <span class="i-tabler-brand-whatsapp" /> Share
         </core-button>
@@ -136,8 +135,9 @@ const shareOpen = ref(false)
           <span class="i-tabler-download" /> Export
         </core-button>
       </div>
-    </div>
+    </main>
 
+    <bottom-nav active="settle" :bill-id="id" />
     <share-export-sheet v-model:open="shareOpen" :bill="bill" :transfers="transfers" />
   </template>
 

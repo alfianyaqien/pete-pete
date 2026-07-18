@@ -36,15 +36,6 @@ function mapRow(row: Record<string, unknown>): Bill {
 export class SupabaseBillRepository implements BillRepository {
   constructor(private readonly sb: SupabaseClient) {}
 
-  async list(): Promise<Bill[]> {
-    const { data, error } = await this.sb
-      .from(TABLE)
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    return (data ?? []).map(mapRow)
-  }
-
   async create(input: CreateBillInput): Promise<Bill> {
     const bill = buildBill(input)
     const { data, error } = await this.sb.from(TABLE).insert(toRow(bill)).select().single()

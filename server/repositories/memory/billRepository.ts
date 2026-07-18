@@ -25,10 +25,6 @@ import { buildBill } from '../../utils/buildBill'
 const store = new Map<string, Bill>()
 
 export class MemoryBillRepository implements BillRepository {
-  async list(): Promise<Bill[]> {
-    return [...store.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  }
-
   async create(input: CreateBillInput): Promise<Bill> {
     const bill = buildBill(input)
     store.set(bill.id, bill)

@@ -137,10 +137,10 @@ export default defineConfig({
       'field-shared w-full appearance-none border-0 bg-transparent p-0 pr-6 font-600 cursor-pointer focus:ring-0',
   },
   safelist: [
-    // a couple of icons referenced dynamically in early test scaffolding
-    'i-tabler-mountain',
+    // bill-scoped nav builds icon classes dynamically (i-tabler-${icon}), so
+    // its icons must be safelisted or UnoCSS won't generate them.
     'i-tabler-receipt',
     'i-tabler-users',
-    'i-tabler-settings',
+    'i-tabler-arrows-left-right',
   ],
 })

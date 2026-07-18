@@ -7,7 +7,9 @@ import type { ParticipantPatch } from '../../shared/operations'
  * Mutations return the full updated Bill (or null if the bill doesn't exist).
  */
 export interface BillRepository {
-  list(): Promise<Bill[]>
+  // No list()/"all bills" method by design: the app has no login, so bills are
+  // addressed only by their share-link id — there is no global collection to
+  // enumerate (that would leak every device's bills to anyone).
   create(input: CreateBillInput): Promise<Bill>
   get(id: string): Promise<Bill | null>
   update(id: string, patch: UpdateBillInput): Promise<Bill | null>
