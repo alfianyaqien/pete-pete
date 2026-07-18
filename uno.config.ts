@@ -131,7 +131,7 @@ export default defineConfig({
       'field-shared w-full border-2 border-forest border-solid bg-surface-input px-3 py-2.5 focus:ring-2 focus:ring-forest/20',
     'field-bare':
       'field-shared w-full border-0 bg-transparent p-0 focus:ring-0',
-    // selects: appearance-none native <select>, paired with AppSelect's chevron icon
+    // selects: CoreSelect's custom listbox trigger, paired with its chevron icon
     'select-field': 'field appearance-none pr-9 cursor-pointer',
     'select-bare':
       'field-shared w-full appearance-none border-0 bg-transparent p-0 pr-6 font-600 cursor-pointer focus:ring-0',

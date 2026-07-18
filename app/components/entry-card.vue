@@ -8,11 +8,7 @@ defineEmits<{ edit: [] }>()
 const nameOf = (id: string) => props.participants.find((p) => p.id === id)?.name ?? '?'
 const total = computed(() => entryTotalOf(props.entry))
 
-const payerName = computed(() =>
-  props.entry.type === 'simple'
-    ? nameOf(props.entry.payers[0]?.participantId)
-    : nameOf(props.entry.payerId),
-)
+const payerName = computed(() => nameOf(props.entry.payers[0]?.participantId ?? ''))
 const splitWays = computed(() =>
   props.entry.type === 'simple' ? props.entry.sharers.length : 0,
 )

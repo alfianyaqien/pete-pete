@@ -69,7 +69,7 @@ export const sharedOrderEntrySchema = z.object({
   id: idSchema,
   type: z.literal('shared_order'),
   title: entryTitle,
-  payerId: idSchema,
+  payers: z.array(payerShareSchema).min(1),
   items: z.array(orderItemSchema).min(1),
   fees: feesSchema,
   discount: rupiah,

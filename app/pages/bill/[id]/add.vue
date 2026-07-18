@@ -19,7 +19,6 @@ interface FormShape {
   title: string
   amount: number
   payerMode: 'one' | 'several'
-  payerId: string
   payers: { participantId: string; amount: number }[]
   shareMethod: 'equally' | 'exact'
   sharerIds: string[]
@@ -38,8 +37,7 @@ function blank(): FormShape {
     title: '',
     amount: 0,
     payerMode: 'one',
-    payerId: meId,
-    payers: participants.value.map((p) => ({ participantId: p.id, amount: 0 })),
+    payers: meId ? [{ participantId: meId, amount: 0 }] : [],
     shareMethod: 'equally',
     sharerIds: participants.value.map((p) => p.id),
     exactShares: {},
@@ -52,19 +50,14 @@ function fromEntry(e: Entry): FormShape {
   const base = blank()
   base.type = e.type
   base.title = e.title
+  base.payerMode = e.payers.length > 1 ? 'several' : 'one'
+  base.payers = e.payers.map((p) => ({ ...p }))
   if (e.type === 'simple') {
     base.amount = e.amount
-    base.payerMode = e.payers.length > 1 ? 'several' : 'one'
-    base.payerId = e.payers[0]?.participantId ?? meId
-    base.payers = participants.value.map((p) => ({
-      participantId: p.id,
-      amount: e.payers.find((x) => x.participantId === p.id)?.amount ?? 0,
-    }))
     base.shareMethod = e.shareMethod
     base.sharerIds = e.sharers.map((s) => s.participantId)
     base.exactShares = Object.fromEntries(e.sharers.map((s) => [s.participantId, s.share]))
   } else {
-    base.payerId = e.payerId
     base.items = e.items.map((it) => ({ ...it }))
     base.fees = { ...e.fees }
     base.discount = e.discount
@@ -81,7 +74,11 @@ const { values, setFieldValue, handleSubmit, isSubmitting } = useForm<FormShape>
 const typeModel = computed({ get: () => values.type, set: (v) => setFieldValue('type', v) })
 const payerModeModel = computed({ get: () => values.payerMode, set: (v) => setFieldValue('payerMode', v) })
 const shareMethodModel = computed({ get: () => values.shareMethod, set: (v) => setFieldValue('shareMethod', v) })
-const payerIdModel = computed({ get: () => values.payerId, set: (v) => setFieldValue('payerId', v) })
+const payerIdModel = computed({
+  get: () => values.payers[0]?.participantId ?? meId,
+  set: (pid: string) => setFieldValue('payers', [{ participantId: pid, amount: 0 }]),
+})
+const payersModel = computed({ get: () => values.payers, set: (v) => setFieldValue('payers', v) })
 
 const typeOptions = [
   { label: 'Simple', value: 'simple' as const },
@@ -109,17 +106,9 @@ const equalSplit = computed<Record<string, number>>(() => {
 })
 const shareOf = (pid: string) =>
   values.shareMethod === 'equally' ? (equalSplit.value[pid] ?? 0) : (values.exactShares[pid] ?? 0)
-const payerAmountOf = (pid: string) =>
-  values.payers.find((x) => x.participantId === pid)?.amount ?? 0
 
 function setExactShare(pid: string, n: number) {
   setFieldValue('exactShares', { ...values.exactShares, [pid]: n })
-}
-function setPayerAmount(pid: string, n: number) {
-  setFieldValue(
-    'payers',
-    values.payers.map((x) => (x.participantId === pid ? { ...x, amount: n } : x)),
-  )
 }
 function toggleSharer(pid: string) {
   const next = [...values.sharerIds]
@@ -149,7 +138,7 @@ const sharedSubtotal = computed(() =>
     id: 'x',
     type: 'shared_order',
     title: values.title || 'x',
-    payerId: values.payerId || 'x',
+    payers: [{ participantId: 'x', amount: 0 }],
     items: values.items.length
       ? values.items.map((it) => ({ ...it }))
       : [{ id: 'z', name: 'z', qty: 1, priceEach: 0, orderedBy: ['z'] }],
@@ -161,21 +150,30 @@ const sharedSubtotal = computed(() =>
 // ── submit ──────────────────────────────────────────────────────────────
 const error = ref('')
 
+function payersFor(totalAmount: number): { participantId: string; amount: number }[] {
+  return values.payerMode === 'one'
+    ? [{ participantId: payerIdModel.value, amount: totalAmount }]
+    : values.payers.filter((p) => p.amount > 0)
+}
+
 function buildPayload(): EntryInput {
   if (values.type === 'simple') {
     const sharers = values.sharerIds.map((pid) => ({ participantId: pid, share: shareOf(pid) }))
     const amount =
       values.shareMethod === 'exact' ? sharers.reduce((a, s) => a + s.share, 0) : values.amount
-    const payers =
-      values.payerMode === 'one'
-        ? [{ participantId: values.payerId, amount }]
-        : values.payers.filter((p) => p.amount > 0)
-    return { type: 'simple', title: values.title, amount, payers, shareMethod: values.shareMethod, sharers }
+    return {
+      type: 'simple',
+      title: values.title,
+      amount,
+      payers: payersFor(amount),
+      shareMethod: values.shareMethod,
+      sharers,
+    }
   }
   return {
     type: 'shared_order',
     title: values.title,
-    payerId: values.payerId,
+    payers: payersFor(sharedSubtotal.value),
     items: values.items.map(({ name, qty, priceEach, orderedBy }) => ({ name, qty, priceEach, orderedBy })),
     fees: values.fees,
     discount: values.discount,
@@ -213,7 +211,6 @@ const onSubmit = handleSubmit(async () => {
       <core-segmented-control
         v-model="typeModel"
         :options="typeOptions"
-        :accent="values.type === 'shared_order' ? 'ochre' : 'forest'"
       />
 
       <core-input
@@ -225,7 +222,7 @@ const onSubmit = handleSubmit(async () => {
 
       <!-- ───────── SIMPLE ───────── -->
       <template v-if="values.type === 'simple'">
-        <core-input name="amount" numeric type="number" min="0" label="Amount" placeholder="320000" variant="emphasis" class="mt-3" />
+        <core-input name="amount" numeric type="number" min="0" label="Amount" placeholder="320000" class="mt-3" />
 
         <!-- Step 1 -->
         <div class="mt-5 flex items-center gap-2">
@@ -236,29 +233,13 @@ const onSubmit = handleSubmit(async () => {
           <core-segmented-control v-model="payerModeModel" :options="payerModeOptions" />
         </div>
         <div v-if="values.payerMode === 'one'" class="mt-2 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
-          <avatar-badge v-if="values.payerId" :badge-key="badgeOf(values.payerId)!" :size="34" />
+          <avatar-badge v-if="payerIdModel" :badge-key="badgeOf(payerIdModel)!" :size="34" />
           <div class="flex-1">
             <core-select v-model="payerIdModel" :options="participantOptions" variant="bare" />
           </div>
           <money-text :value="values.amount" class="text-sm font-600" />
         </div>
-        <div v-else class="mt-2 flex flex-col gap-2">
-          <div v-for="p in participants" :key="p.id" class="flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2">
-            <avatar-badge :badge-key="p.badgeKey" :size="28" />
-            <span class="flex-1 text-sm">{{ p.name }}</span>
-            <div class="w-28">
-              <core-input
-                :model-value="payerAmountOf(p.id)"
-                numeric
-                type="number"
-                min="0"
-                variant="compact"
-                class="text-right"
-                @update:model-value="setPayerAmount(p.id, $event as number)"
-              />
-            </div>
-          </div>
-        </div>
+        <payer-rows v-else v-model="payersModel" :participants="participants" class="mt-2" />
 
         <!-- Step 2 -->
         <div class="mt-5 flex items-center gap-2">
@@ -271,7 +252,7 @@ const onSubmit = handleSubmit(async () => {
         <div class="chip-pos mt-3 w-full justify-center py-2 text-center">
           Split <b class="mx-1">{{ values.sharerIds.length }} ways</b>
           <template v-if="values.shareMethod === 'equally' && values.payerMode === 'one'">
-            · each owes {{ nameOf(values.payerId) }} {{ formatRupiah(equalSplit[values.sharerIds[0]] ?? 0) }}
+            · each owes {{ nameOf(payerIdModel) }} {{ formatRupiah(equalSplit[values.sharerIds[0]] ?? 0) }}
           </template>
         </div>
         <button type="button" class="mt-3 text-xs font-600 text-forest appearance-none border-solid border rounded-md px-2 py-1 border-line-medium bg-surface-card block ml-auto" @click="selectAllSharers">
@@ -314,11 +295,17 @@ const onSubmit = handleSubmit(async () => {
 
       <!-- ───────── SHARED ORDER ───────── -->
       <template v-else>
-        <div class="mt-3 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
+        <div class="mt-3 flex items-center gap-2">
           <span class="eyebrow">Paid by</span>
-          <avatar-badge v-if="values.payerId" :badge-key="badgeOf(values.payerId)!" :size="28" />
-          <core-select v-model="payerIdModel" :options="participantOptions" variant="bare" />
         </div>
+        <div class="mt-2">
+          <core-segmented-control v-model="payerModeModel" :options="payerModeOptions" />
+        </div>
+        <div v-if="values.payerMode === 'one'" class="mt-2 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
+          <avatar-badge v-if="payerIdModel" :badge-key="badgeOf(payerIdModel)!" :size="28" />
+          <core-select v-model="payerIdModel" :options="participantOptions" variant="bare" class="w-full" />
+        </div>
+        <payer-rows v-else v-model="payersModel" :participants="participants" class="mt-2" />
 
         <button
           type="button"

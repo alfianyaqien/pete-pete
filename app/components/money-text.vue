@@ -9,7 +9,7 @@ const props = withDefaults(
 const text = computed(() => {
   if (props.signed) {
     const sign = props.value > 0 ? '+' : props.value < 0 ? '−' : ''
-    return sign + (props.prefix ? 'Rp ' : '') + formatAmount(Math.abs(props.value))
+    return sign + (props.prefix ? 'Rp ' : '') + formatAmount(Math.abs(props.value || 0))
   }
   return props.prefix ? formatRupiah(props.value) : formatAmount(props.value)
 })

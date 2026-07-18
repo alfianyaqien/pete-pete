@@ -17,11 +17,8 @@ const settlement = computed(() =>
 const nameOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.name ?? '?'
 
 function paidBy(e: Entry): string {
-  if (e.type === 'simple') {
-    const first = nameOf(e.payers[0]?.participantId)
-    return e.payers.length > 1 ? `${first} & ${e.payers.length - 1}` : first
-  }
-  return nameOf(e.payerId)
+  const first = nameOf(e.payers[0]?.participantId ?? '')
+  return e.payers.length > 1 ? `${first} & ${e.payers.length - 1}` : first
 }
 const splitLabel = (e: Entry) => (e.type === 'simple' ? `${e.sharers.length} ways` : 'shared')
 

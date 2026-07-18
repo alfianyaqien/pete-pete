@@ -95,7 +95,7 @@ export function allocateEntry(entry: Entry): EntryAllocation {
     ids.forEach((id, i) => add(shares, id, feesNet < 0 ? -feeParts[i] : feeParts[i]))
   }
 
-  add(payments, entry.payerId, total)
+  for (const p of entry.payers) add(payments, p.participantId, p.amount)
   return { shares, payments, total }
 }
 

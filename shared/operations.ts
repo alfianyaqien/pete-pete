@@ -1,4 +1,4 @@
-import { splitProportional } from './settle'
+import { splitProportional, sharedOrderTotal } from './settle'
 import { nextBadge } from './badges'
 import type {
   Bill,
@@ -112,8 +112,15 @@ function stripFromShared(e: SharedOrderEntry, pid: string): SharedOrderEntry | n
     .filter((it) => it.orderedBy.length > 0)
   if (items.length === 0) return null
 
-  const payerId = e.payerId === pid ? items[0].orderedBy[0] : e.payerId
-  return { ...e, items, payerId }
+  // keep sum(payers.amount) === total (removing a payer never changes the total)
+  const total = sharedOrderTotal(e)
+  let payers = e.payers.filter((p) => p.participantId !== pid)
+  payers =
+    payers.length === 0
+      ? [{ participantId: items[0].orderedBy[0], amount: total }]
+      : rebalance(total, payers, (p) => p.amount, (p, v) => ({ ...p, amount: v }))
+
+  return { ...e, items, payers }
 }
 
 /** Re-spread `total` across rows proportionally to their current value. */

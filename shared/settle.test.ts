@@ -87,7 +87,7 @@ describe('shared order — items + proportional fees', () => {
     id: 'e2',
     type: 'shared_order' as const,
     title: 'Warung dinner',
-    payerId: 'Q',
+    payers: [{ participantId: 'Q', amount: 110_000 }],
     items: [
       { id: 'i1', name: 'Nasi goreng', qty: 2, priceEach: 30_000, orderedBy: ['a', 'b'] }, // 60k → 30k each
       { id: 'i2', name: 'Sate', qty: 1, priceEach: 40_000, orderedBy: ['a'] }, // 40k → a
@@ -134,7 +134,7 @@ describe('multi-entry bill — settlement invariants', () => {
         id: 'e2',
         type: 'shared_order',
         title: 'Warung dinner',
-        payerId: 'Qoni',
+        payers: [{ participantId: 'Qoni', amount: 210_900 }], // 190k items + 11% tax
         items: [
           { id: 'i1', name: 'Nasi', qty: 4, priceEach: 25_000, orderedBy: ['Qoni', 'Dewi'] },
           { id: 'i2', name: 'Ayam', qty: 2, priceEach: 45_000, orderedBy: ['Surya', 'Izzam'] },

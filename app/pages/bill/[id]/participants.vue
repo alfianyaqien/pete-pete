@@ -14,11 +14,12 @@ const frontedCount = computed(() => balances.value.filter((b) => b.paid > 0).len
 const takenBadges = computed(() => bill.value?.participants.map((p) => p.badgeKey) ?? [])
 
 function involvedCount(pid: string): number {
-  return (bill.value?.entries ?? []).filter((e) =>
-    e.type === 'simple'
-      ? e.payers.some((p) => p.participantId === pid) ||
-        e.sharers.some((s) => s.participantId === pid)
-      : e.payerId === pid || e.items.some((it) => it.orderedBy.includes(pid)),
+  return (bill.value?.entries ?? []).filter(
+    (e) =>
+      e.payers.some((p) => p.participantId === pid) ||
+      (e.type === 'simple'
+        ? e.sharers.some((s) => s.participantId === pid)
+        : e.items.some((it) => it.orderedBy.includes(pid))),
   ).length
 }
 
