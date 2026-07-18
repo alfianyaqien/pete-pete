@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { billStats } from '~~/shared/stats'
-import { formatDateShort } from '~~/shared/format'
+import { billStats, groupEntriesByDate } from '~~/shared/stats'
+import { formatDateShort, formatDayHeader, formatRupiah } from '~~/shared/format'
 import { copyShareLink } from '~/composables/useShare'
 
 const route = useRoute()
@@ -8,6 +8,7 @@ const id = route.params.id as string
 const { data: bill } = await useBill(id)
 
 const stats = computed(() => (bill.value ? billStats(bill.value) : null))
+const groups = computed(() => (bill.value ? groupEntriesByDate(bill.value.entries) : []))
 
 useHead({ title: computed(() => bill.value?.title ?? 'Bill') })
 
@@ -49,14 +50,24 @@ async function onCopy() {
         </core-button>
       </div>
 
-      <div v-if="bill.entries.length" class="flex flex-col gap-2.5">
-        <entry-card
-          v-for="e in bill.entries"
-          :key="e.id"
-          :entry="e"
-          :participants="bill.participants"
-          @edit="navigateTo(`/bill/${id}/add?entry=${e.id}`)"
-        />
+      <div v-if="bill.entries.length" class="flex flex-col gap-5">
+        <section v-for="g in groups" :key="g.date">
+          <div class="mb-2 flex items-center justify-between border-b border-line-faint pb-1.5">
+            <p class="text-[11px] font-700 uppercase tracking-wide text-body">
+              {{ formatDayHeader(g.date) }}
+            </p>
+            <span class="num text-[11px] text-muted">{{ formatRupiah(g.total) }}</span>
+          </div>
+          <div class="flex flex-col gap-2.5">
+            <entry-card
+              v-for="e in g.entries"
+              :key="e.id"
+              :entry="e"
+              :participants="bill.participants"
+              @edit="navigateTo(`/bill/${id}/add?entry=${e.id}`)"
+            />
+          </div>
+        </section>
       </div>
       <div v-else class="card-parchment mt-2 p-6 text-center">
         <span class="i-tabler-receipt mx-auto block text-2xl text-muted" />

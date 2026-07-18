@@ -6,6 +6,30 @@ export function entryTotalOf(entry: Entry): number {
   return entry.type === 'simple' ? entry.amount : sharedOrderTotal(entry)
 }
 
+export interface EntryGroup {
+  date: string
+  total: number
+  entries: Entry[]
+}
+
+/** Group entries by their date, newest day first (entries keep insertion order
+ *  within a day). Used for the day-separated entry list. */
+export function groupEntriesByDate(entries: Entry[]): EntryGroup[] {
+  const map = new Map<string, Entry[]>()
+  for (const e of entries) {
+    const list = map.get(e.date)
+    if (list) list.push(e)
+    else map.set(e.date, [e])
+  }
+  return [...map.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([date, es]) => ({
+      date,
+      entries: es,
+      total: es.reduce((s, e) => s + entryTotalOf(e), 0),
+    }))
+}
+
 /** Sum of every entry's total — the bill's "total tally". */
 export function billTotal(bill: Bill): number {
   return bill.entries.reduce((sum, e) => sum + entryTotalOf(e), 0)

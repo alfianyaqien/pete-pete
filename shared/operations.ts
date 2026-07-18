@@ -1,5 +1,6 @@
 import { splitProportional, sharedOrderTotal } from './settle'
 import { nextBadge } from './badges'
+import { todayISO } from './format'
 import type {
   Bill,
   Entry,
@@ -136,10 +137,11 @@ function rebalance<T>(
 
 // ── entries ───────────────────────────────────────────────────────────────
 function materializeEntry(input: EntryInput, id: string): Entry {
+  const date = input.date ?? todayISO() // required once stored; default today
   if (input.type === 'simple') {
-    return { ...input, id }
+    return { ...input, id, date }
   }
-  return { ...input, id, items: input.items.map((it) => ({ ...it, id: uid() })) }
+  return { ...input, id, date, items: input.items.map((it) => ({ ...it, id: uid() })) }
 }
 
 export function addEntry(bill: Bill, input: EntryInput): Bill {

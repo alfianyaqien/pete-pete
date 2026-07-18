@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { splitProportional, sharedOrderTotal } from '~~/shared/settle'
 import { entryInputSchema } from '~~/shared/schemas'
-import { formatRupiah } from '~~/shared/format'
+import { formatRupiah, todayISO } from '~~/shared/format'
 import type { Entry, EntryInput } from '~~/shared/types'
 import type { OrderItemDraft } from '~/components/add-order-item.vue'
 
@@ -19,6 +19,7 @@ interface ItemRow extends OrderItemDraft {
 interface FormShape {
   type: 'simple' | 'shared_order'
   title: string
+  date: string
   amount: number
   payerMode: 'one' | 'several'
   payers: { participantId: string; amount: number }[]
@@ -37,6 +38,7 @@ function blank(): FormShape {
   return {
     type: 'simple',
     title: '',
+    date: todayISO(),
     amount: 0,
     payerMode: 'one',
     payers: meId ? [{ participantId: meId, amount: 0 }] : [],
@@ -52,6 +54,7 @@ function fromEntry(e: Entry): FormShape {
   const base = blank()
   base.type = e.type
   base.title = e.title
+  base.date = e.date
   base.payerMode = e.payers.length > 1 ? 'several' : 'one'
   base.payers = e.payers.map((p) => ({ ...p }))
   if (e.type === 'simple') {
@@ -140,6 +143,7 @@ const sharedSubtotal = computed(() =>
     id: 'x',
     type: 'shared_order',
     title: values.title || 'x',
+    date: values.date,
     payers: [{ participantId: 'x', amount: 0 }],
     items: values.items.length
       ? values.items.map((it) => ({ ...it }))
@@ -166,6 +170,7 @@ function buildPayload(): EntryInput {
     return {
       type: 'simple',
       title: values.title,
+      date: values.date,
       amount,
       payers: payersFor(amount),
       shareMethod: values.shareMethod,
@@ -175,6 +180,7 @@ function buildPayload(): EntryInput {
   return {
     type: 'shared_order',
     title: values.title,
+    date: values.date,
     payers: payersFor(sharedSubtotal.value),
     items: values.items.map(({ name, qty, priceEach, orderedBy }) => ({ name, qty, priceEach, orderedBy })),
     fees: values.fees,
@@ -221,6 +227,10 @@ const onSubmit = handleSubmit(async () => {
         :placeholder="values.type === 'simple' ? 'Gasoline' : 'Warung dinner'"
         class="mt-4"
       />
+
+      <div class="mt-3">
+        <core-date-input name="date" label="Date" />
+      </div>
 
       <!-- ───────── SIMPLE ───────── -->
       <template v-if="values.type === 'simple'">

@@ -39,3 +39,41 @@ export function formatDateShort(iso: string): string {
   const d = new Date(iso)
   return isNaN(d.getTime()) ? '' : dateFmt.format(d)
 }
+
+// ── expense-date helpers (dates are stored as local 'YYYY-MM-DD' strings) ──
+
+/** Local today as 'YYYY-MM-DD'. */
+export function todayISO(): string {
+  const d = new Date()
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+/** Parse a 'YYYY-MM-DD' string as a LOCAL date (avoids UTC off-by-one). */
+export function parseISODate(iso: string): Date {
+  const [y, m, d] = iso.split('-').map(Number)
+  return new Date(y, (m || 1) - 1, d || 1)
+}
+
+const mediumFmt = new Intl.DateTimeFormat('id-ID', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+})
+
+/** 'YYYY-MM-DD' → "19 Jun 2026" */
+export function formatDateMedium(iso: string): string {
+  if (!iso) return ''
+  return mediumFmt.format(parseISODate(iso))
+}
+
+const weekdayFmt = new Intl.DateTimeFormat('en', { weekday: 'short' })
+
+/** Day-group header, e.g. "Today · 19 Jun", "Yesterday · 18 Jun", "Fri · 17 Jun". */
+export function formatDayHeader(iso: string): string {
+  const date = parseISODate(iso)
+  const today = parseISODate(todayISO())
+  const diff = Math.round((date.getTime() - today.getTime()) / 86_400_000)
+  const rel = diff === 0 ? 'Today' : diff === -1 ? 'Yesterday' : weekdayFmt.format(date)
+  return `${rel} · ${dateFmt.format(date)}`
+}

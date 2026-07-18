@@ -14,6 +14,8 @@ export const idSchema = z.string().min(1)
 export const rupiah = z.number().int().nonnegative()
 export const personName = z.string().trim().min(1, 'Name is required').max(40)
 const entryTitle = z.string().trim().min(1, 'Required').max(80)
+/** Local calendar date, 'YYYY-MM-DD'. */
+export const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date')
 
 /** The 30 trail-badge animal keys, in handoff order. avatars.ts attaches SVG
  *  path data keyed by these. */
@@ -46,6 +48,7 @@ export const simpleEntrySchema = z.object({
   id: idSchema,
   type: z.literal('simple'),
   title: entryTitle,
+  date: isoDate,
   amount: rupiah,
   payers: z.array(payerShareSchema).min(1),
   shareMethod: z.enum(['equally', 'exact']),
@@ -69,6 +72,7 @@ export const sharedOrderEntrySchema = z.object({
   id: idSchema,
   type: z.literal('shared_order'),
   title: entryTitle,
+  date: isoDate,
   payers: z.array(payerShareSchema).min(1),
   items: z.array(orderItemSchema).min(1),
   fees: feesSchema,
@@ -121,11 +125,17 @@ export const updateBillInputSchema = z
     message: 'Nothing to update',
   })
 
-/** Entry as submitted by a form: no entry/item ids yet. */
-export const simpleEntryInputSchema = simpleEntrySchema.omit({ id: true })
+/** Entry as submitted by a form: no entry/item ids yet, and `date` is optional
+ *  (the server defaults it to today) — required once stored. */
+export const simpleEntryInputSchema = simpleEntrySchema
+  .omit({ id: true })
+  .extend({ date: isoDate.optional() })
 export const sharedOrderEntryInputSchema = sharedOrderEntrySchema
   .omit({ id: true })
-  .extend({ items: z.array(orderItemSchema.omit({ id: true })).min(1) })
+  .extend({
+    date: isoDate.optional(),
+    items: z.array(orderItemSchema.omit({ id: true })).min(1),
+  })
 export const entryInputSchema = z.discriminatedUnion('type', [
   simpleEntryInputSchema,
   sharedOrderEntryInputSchema,

@@ -53,6 +53,7 @@ describe('simple entry — equal split', () => {
         id: 'e1',
         type: 'simple',
         title: 'Lodging',
+        date: '2026-06-19',
         amount: 400_000,
         payers: [{ participantId: 'A', amount: 400_000 }],
         shareMethod: 'equally',
@@ -87,6 +88,7 @@ describe('shared order — items + proportional fees', () => {
     id: 'e2',
     type: 'shared_order' as const,
     title: 'Warung dinner',
+    date: '2026-06-19',
     payers: [{ participantId: 'Q', amount: 110_000 }],
     items: [
       { id: 'i1', name: 'Nasi goreng', qty: 2, priceEach: 30_000, orderedBy: ['a', 'b'] }, // 60k → 30k each
@@ -122,6 +124,7 @@ describe('multi-entry bill — settlement invariants', () => {
         id: 'e1',
         type: 'simple',
         title: 'Gasoline',
+        date: '2026-06-19',
         amount: 320_000,
         payers: [{ participantId: 'Iqbal', amount: 320_000 }],
         shareMethod: 'equally',
@@ -134,6 +137,7 @@ describe('multi-entry bill — settlement invariants', () => {
         id: 'e2',
         type: 'shared_order',
         title: 'Warung dinner',
+        date: '2026-06-20',
         payers: [{ participantId: 'Qoni', amount: 210_900 }], // 190k items + 11% tax
         items: [
           { id: 'i1', name: 'Nasi', qty: 4, priceEach: 25_000, orderedBy: ['Qoni', 'Dewi'] },

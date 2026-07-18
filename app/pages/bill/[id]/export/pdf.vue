@@ -23,6 +23,11 @@ function paidBy(e: Entry): string {
 }
 const splitLabel = (e: Entry) => (e.type === 'simple' ? `${e.sharers.length} ways` : 'shared')
 
+// chronological (oldest first) for a printed ledger
+const sortedEntries = computed(() =>
+  [...(bill.value?.entries ?? [])].sort((a, b) => a.date.localeCompare(b.date)),
+)
+
 function save() {
   if (import.meta.client) window.print()
 }
@@ -68,6 +73,7 @@ function save() {
         <table class="w-full text-sm">
           <thead>
             <tr class="border-b border-line-medium text-left text-[11px] uppercase text-muted">
+              <th class="py-1.5 font-600">Date</th>
               <th class="py-1.5 font-600">Entry</th>
               <th class="py-1.5 font-600">Paid by</th>
               <th class="py-1.5 font-600">Split</th>
@@ -75,7 +81,8 @@ function save() {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="e in bill.entries" :key="e.id" class="border-b border-line-faint">
+            <tr v-for="e in sortedEntries" :key="e.id" class="border-b border-line-faint">
+              <td class="num whitespace-nowrap py-1.5 text-muted">{{ formatDateShort(e.date) }}</td>
               <td class="py-1.5">
                 {{ e.title }}
                 <span
