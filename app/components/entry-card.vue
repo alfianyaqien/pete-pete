@@ -3,7 +3,7 @@ import type { Entry, Participant } from '~~/shared/types'
 import { entryTotalOf } from '~~/shared/stats'
 
 const props = defineProps<{ entry: Entry; participants: Participant[] }>()
-defineEmits<{ edit: []; open: [] }>()
+defineEmits<{ open: [] }>()
 
 const nameOf = (id: string) => props.participants.find((p) => p.id === id)?.name ?? '?'
 const total = computed(() => entryTotalOf(props.entry))
@@ -46,16 +46,10 @@ const people = computed(() => {
       </p>
       <avatar-stack :participants="people" :max="5" :size="20" class="mt-1.5" />
     </div>
-    <div class="flex flex-col items-end gap-1.5">
+    <!-- the whole card opens the detail sheet; the chevron just signals that -->
+    <div class="flex flex-none items-center gap-1.5 self-center">
       <money-text :value="total" class="text-[15px] font-600" />
-      <button
-        type="button"
-        class="text-muted"
-        aria-label="Edit"
-        @click.stop="$emit('edit')"
-      >
-        <span class="i-tabler-pencil text-sm" />
-      </button>
+      <span class="i-tabler-chevron-right text-sm text-muted" />
     </div>
   </div>
 </template>

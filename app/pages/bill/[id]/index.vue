@@ -107,7 +107,6 @@ async function deleteFromDetail() {
               :entry="e"
               :participants="bill.participants"
               @open="openDetail(e)"
-              @edit="navigateTo(`/bill/${id}/add?entry=${e.id}`)"
             />
           </div>
         </section>
