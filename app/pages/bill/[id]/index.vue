@@ -2,7 +2,7 @@
 import { billStats, groupEntriesByDate } from '~~/shared/stats'
 import { formatDateShort, formatDayHeader, formatRupiah } from '~~/shared/format'
 import { copyShareLink } from '~/composables/useShare'
-import type { Entry } from '~~/shared/types'
+import type { Bill, Entry } from '~~/shared/types'
 
 const route = useRoute()
 const id = route.params.id as string
@@ -39,6 +39,25 @@ function editFromDetail() {
   // transition, and unmounting the page mid-transition strands the teleported
   // modal in <body> on top of the edit form. Unmount tears it down cleanly.
   navigateTo(`/bill/${id}/add?entry=${detailEntry.value?.id}`)
+}
+
+// The DELETE route returns the updated bill, so patch it in directly — no refetch.
+const deleting = ref(false)
+const deleteError = ref('')
+async function deleteFromDetail() {
+  const entry = detailEntry.value
+  if (!entry) return
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    bill.value = await $fetch<Bill>(`/api/bills/${id}/entries/${entry.id}`, { method: 'DELETE' })
+    detailOpen.value = false
+    detailEntry.value = null
+  } catch (e: any) {
+    deleteError.value = e?.data?.statusMessage || 'Could not delete this expense'
+  } finally {
+    deleting.value = false
+  }
 }
 </script>
 
@@ -103,7 +122,10 @@ function editFromDetail() {
       v-model:open="detailOpen"
       :entry="detailEntry"
       :participants="bill.participants"
+      :deleting="deleting"
+      :error="deleteError"
       @edit="editFromDetail"
+      @delete="deleteFromDetail"
     />
 
     <bottom-nav active="entries" :bill-id="id" />

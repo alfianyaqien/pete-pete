@@ -9,8 +9,17 @@ import { formatRupiah, formatDateMedium } from '~~/shared/format'
  * and (for a Bill) the itemised order with who ordered what.
  */
 const open = defineModel<boolean>('open', { default: false })
-const props = defineProps<{ entry: Entry | null; participants: Participant[] }>()
-defineEmits<{ edit: [] }>()
+const props = defineProps<{
+  entry: Entry | null
+  participants: Participant[]
+  deleting?: boolean
+  error?: string
+}>()
+defineEmits<{ edit: []; delete: [] }>()
+
+// Deleting is irreversible and there's no undo, so require a second tap.
+const confirming = ref(false)
+watch([open, () => props.entry], () => (confirming.value = false))
 
 const nameOf = (id: string) => props.participants.find((p) => p.id === id)?.name ?? '?'
 const personOf = (id: string) => props.participants.find((p) => p.id === id)
@@ -117,12 +126,30 @@ const taxAmount = computed(() =>
         </div>
       </div>
 
-      <div class="mt-5 flex gap-2">
-        <core-button variant="ghost" block @click="open = false">Close</core-button>
-        <core-button block @click="$emit('edit')">
-          <span class="i-tabler-pencil" /> Edit
+      <p v-if="error" class="chip-neg mt-4">{{ error }}</p>
+
+      <template v-if="!confirming">
+        <core-button variant="danger" block class="mt-4" @click="confirming = true">
+          <span class="i-tabler-trash" /> Delete expense
         </core-button>
-      </div>
+        <div class="mt-2 flex gap-2">
+          <core-button variant="ghost" block @click="open = false">Close</core-button>
+          <core-button block @click="$emit('edit')">
+            <span class="i-tabler-pencil" /> Edit
+          </core-button>
+        </div>
+      </template>
+      <template v-else>
+        <p class="mt-4 text-center text-xs text-body">
+          Delete <b>{{ entry.title }}</b>? This can't be undone.
+        </p>
+        <div class="mt-2 flex gap-2">
+          <core-button variant="ghost" block @click="confirming = false">Cancel</core-button>
+          <core-button variant="danger" block :loading="deleting" @click="$emit('delete')">
+            Delete
+          </core-button>
+        </div>
+      </template>
     </div>
   </core-modal>
 </template>
