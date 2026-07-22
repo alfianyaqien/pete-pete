@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { nextBadge } from '../../shared/badges'
+import { generateSlug } from '../../shared/slug'
 import type { Bill, BadgeKey, CreateBillInput } from '../../shared/types'
 
 /**
@@ -18,7 +19,9 @@ export function buildBill(input: CreateBillInput): Bill {
   })
 
   return {
-    id: randomUUID(),
+    // The bill's public id IS its short share-link slug (participant ids stay
+    // internal UUIDs). The repository retries create() on the rare collision.
+    id: generateSlug(),
     title: input.title,
     createdAt: new Date().toISOString(),
     participants,

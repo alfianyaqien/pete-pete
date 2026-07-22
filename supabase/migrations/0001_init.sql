@@ -7,10 +7,10 @@
 -- a single table behind the repository abstraction — swap to normalized tables
 -- later by writing a new repository implementation, no API/frontend changes.
 
-create extension if not exists "pgcrypto"; -- for gen_random_uuid()
-
 create table if not exists public.bills (
-  id            uuid primary key default gen_random_uuid(),
+  -- The id IS the short, app-generated share-link slug (e.g. "kR7vTq2"), so the
+  -- link stays tiny — no separate slug→id mapping table. See shared/slug.ts.
+  id            text primary key,
   title         text not null,
   created_at    timestamptz not null default now(),
   lunas         boolean not null default false,

@@ -37,10 +37,15 @@ export class SupabaseBillRepository implements BillRepository {
   constructor(private readonly sb: SupabaseClient) {}
 
   async create(input: CreateBillInput): Promise<Bill> {
-    const bill = buildBill(input)
-    const { data, error } = await this.sb.from(TABLE).insert(toRow(bill)).select().single()
-    if (error) throw error
-    return mapRow(data)
+    // Each attempt mints a fresh short slug as the id. On the astronomically
+    // rare primary-key collision (Postgres 23505) we regenerate and retry.
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const bill = buildBill(input)
+      const { data, error } = await this.sb.from(TABLE).insert(toRow(bill)).select().single()
+      if (!error) return mapRow(data)
+      if (error.code !== '23505') throw error
+    }
+    throw new Error('Could not generate a unique share link — please try again')
   }
 
   async get(id: string): Promise<Bill | null> {
