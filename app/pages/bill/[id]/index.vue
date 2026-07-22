@@ -2,10 +2,12 @@
 import { billStats, groupEntriesByDate } from '~~/shared/stats'
 import { formatDateShort, formatDayHeader, formatRupiah } from '~~/shared/format'
 import { copyShareLink } from '~/composables/useShare'
+import type { Entry } from '~~/shared/types'
 
 const route = useRoute()
 const id = route.params.id as string
 const { data: bill } = await useBill(id)
+console.log("🚀 ~ bill:", bill)
 
 const stats = computed(() => (bill.value ? billStats(bill.value) : null))
 const groups = computed(() => (bill.value ? groupEntriesByDate(bill.value.entries) : []))
@@ -23,6 +25,20 @@ const copied = ref(false)
 async function onCopy() {
   copied.value = await copyShareLink(id)
   setTimeout(() => (copied.value = false), 1800)
+}
+
+// Tapping an entry opens a read-only summary; the sheet's Edit goes to the form.
+const detailOpen = ref(false)
+const detailEntry = ref<Entry | null>(null)
+function openDetail(e: Entry) {
+  detailEntry.value = e
+  detailOpen.value = true
+}
+function editFromDetail() {
+  // Navigate straight away: closing first would start the sheet's leave
+  // transition, and unmounting the page mid-transition strands the teleported
+  // modal in <body> on top of the edit form. Unmount tears it down cleanly.
+  navigateTo(`/bill/${id}/add?entry=${detailEntry.value?.id}`)
 }
 </script>
 
@@ -71,6 +87,7 @@ async function onCopy() {
               :key="e.id"
               :entry="e"
               :participants="bill.participants"
+              @open="openDetail(e)"
               @edit="navigateTo(`/bill/${id}/add?entry=${e.id}`)"
             />
           </div>
@@ -81,6 +98,13 @@ async function onCopy() {
         <p class="mt-2 text-sm text-body">No entries yet. Add your first expense.</p>
       </div>
     </main>
+
+    <entry-detail-sheet
+      v-model:open="detailOpen"
+      :entry="detailEntry"
+      :participants="bill.participants"
+      @edit="editFromDetail"
+    />
 
     <bottom-nav active="entries" :bill-id="id" />
   </template>

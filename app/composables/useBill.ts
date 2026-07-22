@@ -2,7 +2,23 @@ import type { Bill, Participant } from '~~/shared/types'
 
 /** Fetch a bill by id (SSR + client), keyed for dedupe/refresh. */
 export function useBill(id: string) {
-  return useFetch<Bill>(`/api/bills/${id}`, { key: `bill:${id}` })
+  // Captured synchronously: at onMounted time this flag has already flipped.
+  const hydrating = useNuxtApp().isHydrating
+  const result = useFetch<Bill>(`/api/bills/${id}`, { key: `bill:${id}` })
+
+  /**
+   * Nuxt caches the bill under `bill:<id>` and shares it across every page that
+   * asks for the same key — it does NOT refetch when another page mounts, so
+   * returning from the add-expense form re-rendered the stale entry list.
+   * Re-sync on each client mount (skipping the hydration pass, whose payload is
+   * already fresh): the cached bill paints instantly, then revalidates.
+   */
+  if (import.meta.client) {
+    onMounted(() => {
+      if (!hydrating) result.refresh()
+    })
+  }
+  return result
 }
 
 /**

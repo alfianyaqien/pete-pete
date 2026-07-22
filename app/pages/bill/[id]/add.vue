@@ -85,9 +85,10 @@ const payerIdModel = computed({
 })
 const payersModel = computed({ get: () => values.payers, set: (v) => setFieldValue('payers', v) })
 
+// UI wording only — the stored entry types stay 'simple' / 'shared_order'.
 const typeOptions = [
-  { label: 'Simple', value: 'simple' as const },
-  { label: 'Shared order', value: 'shared_order' as const },
+  { label: 'Single', value: 'simple' as const },
+  { label: 'Bill', value: 'shared_order' as const },
 ]
 const payerModeOptions = [
   { label: 'One person', value: 'one' as const },
@@ -334,7 +335,12 @@ const onSubmit = handleSubmit(async () => {
           <div v-for="(it, i) in values.items" :key="it.id" class="flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2">
             <div class="flex-1">
               <p class="text-sm font-600">{{ it.name }} ×{{ it.qty }}</p>
-              <avatar-stack :participants="it.orderedBy.map((pid) => participants.find((p) => p.id === pid)!).filter(Boolean)" :max="5" :size="18" />
+              <avatar-stack
+                :participants="it.orderedBy.map((pid) => participants.find((p) => p.id === pid)!).filter(Boolean)"
+                :max="5"
+                :size="18"
+                class="mt-0.5"
+              />
             </div>
             <money-text :value="it.qty * it.priceEach" class="text-sm font-600" />
             <button type="button" class="btn-remove" @click="removeItem(i)">
