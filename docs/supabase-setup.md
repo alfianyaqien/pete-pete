@@ -45,7 +45,8 @@ create table if not exists public.bills (
   created_at    timestamptz not null default now(),
   lunas         boolean not null default false,
   participants  jsonb not null default '[]'::jsonb,
-  entries       jsonb not null default '[]'::jsonb
+  entries       jsonb not null default '[]'::jsonb,
+  version       integer not null default 0
 );
 
 alter table public.bills enable row level security;

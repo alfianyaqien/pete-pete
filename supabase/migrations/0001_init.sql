@@ -15,7 +15,10 @@ create table if not exists public.bills (
   created_at    timestamptz not null default now(),
   lunas         boolean not null default false,
   participants  jsonb not null default '[]'::jsonb,
-  entries       jsonb not null default '[]'::jsonb
+  entries       jsonb not null default '[]'::jsonb,
+  -- optimistic concurrency: bumped on every mutation; a compare-and-set on this
+  -- value prevents two simultaneous editors from clobbering each other's writes.
+  version       integer not null default 0
 );
 
 -- The app is no-login and reaches Supabase ONLY through server routes using the

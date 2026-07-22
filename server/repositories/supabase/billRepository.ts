@@ -50,33 +50,51 @@ export class SupabaseBillRepository implements BillRepository {
   }
 
   async update(id: string, patch: UpdateBillInput): Promise<Bill | null> {
-    const upd: Record<string, unknown> = {}
-    if (patch.title !== undefined) upd.title = patch.title
-    if (patch.lunas !== undefined) upd.lunas = patch.lunas
-    const { data, error } = await this.sb
-      .from(TABLE)
-      .update(upd)
-      .eq('id', id)
-      .select()
-      .maybeSingle()
-    if (error) throw error
-    return data ? mapRow(data) : null
+    return this.mutate(id, (b) => ({
+      ...b,
+      ...(patch.title !== undefined ? { title: patch.title } : {}),
+      ...(patch.lunas !== undefined ? { lunas: patch.lunas } : {}),
+    }))
   }
 
-  // Mutations are read-modify-write: apply the shared pure operation, then
-  // persist the participants/entries JSONB.
+  /**
+   * Read-modify-write with optimistic concurrency. Every write is a
+   * compare-and-set on the row's `version`: read (with version) → apply the
+   * pure operation → conditionally UPDATE only if `version` is unchanged,
+   * bumping it. If a concurrent editor moved it, the update matches 0 rows and
+   * we re-read and retry — so two people editing the same bill never clobber
+   * each other's changes.
+   */
   private async mutate(id: string, fn: (bill: Bill) => Bill): Promise<Bill | null> {
-    const current = await this.get(id)
-    if (!current) return null
-    const next = fn(current)
-    const { data, error } = await this.sb
-      .from(TABLE)
-      .update({ title: next.title, lunas: next.lunas, participants: next.participants, entries: next.entries })
-      .eq('id', id)
-      .select()
-      .maybeSingle()
-    if (error) throw error
-    return data ? mapRow(data) : null
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const { data: row, error } = await this.sb
+        .from(TABLE)
+        .select('*')
+        .eq('id', id)
+        .maybeSingle()
+      if (error) throw error
+      if (!row) return null
+
+      const version = (row.version as number) ?? 0
+      const next = fn(mapRow(row))
+      const { data, error: updErr } = await this.sb
+        .from(TABLE)
+        .update({
+          title: next.title,
+          lunas: next.lunas,
+          participants: next.participants,
+          entries: next.entries,
+          version: version + 1,
+        })
+        .eq('id', id)
+        .eq('version', version)
+        .select()
+        .maybeSingle()
+      if (updErr) throw updErr
+      if (data) return mapRow(data)
+      // version changed under us → a concurrent write landed; retry
+    }
+    throw new Error('Bill was modified by someone else — please try again')
   }
 
   addParticipant(id: string, input: ParticipantInput) {

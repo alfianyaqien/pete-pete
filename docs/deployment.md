@@ -99,6 +99,12 @@ create a bill through the UI as a final check.
 - **Node version:** pinned to `20.x` via `engines`. If you prefer another,
   change it there or in Vercel → Project → Settings → Node.js Version.
 - **Custom domain:** Vercel → Project → Settings → Domains.
+- **Social preview image:** the share card is `public/og.svg` (referenced by the
+  OG/Twitter meta). Text previews (title + description) work everywhere. Some
+  chat apps — notably WhatsApp — don't render **SVG** preview images, so for a
+  guaranteed image, export a **1200×630 PNG** to `public/og.png` and change the
+  two `ogImage`/`twitterImage` values in `app/app.vue` from `/og.svg` to
+  `/og.png`.
 - **Schema changes:** only needed when the `bills` *columns* change — the
   entry/participant shape lives in JSONB and is validated in-app (see
   [supabase-setup.md](./supabase-setup.md)).

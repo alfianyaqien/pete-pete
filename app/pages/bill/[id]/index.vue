@@ -11,6 +11,13 @@ const stats = computed(() => (bill.value ? billStats(bill.value) : null))
 const groups = computed(() => (bill.value ? groupEntriesByDate(bill.value.entries) : []))
 
 useHead({ title: computed(() => bill.value?.title ?? 'Bill') })
+useSeoMeta({
+  ogTitle: () => (bill.value ? `${bill.value.title} · PetePete` : 'PetePete'),
+  ogDescription: () =>
+    bill.value
+      ? `Trip ledger — ${stats.value?.souls ?? 0} souls · total ${formatRupiah(stats.value?.total ?? 0)}.`
+      : '',
+})
 
 const copied = ref(false)
 async function onCopy() {

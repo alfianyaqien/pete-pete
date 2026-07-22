@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F2E8D3" />
+      <stop offset="0.55" stop-color="#E9DCC0" />
+      <stop offset="1" stop-color="#E1D3B3" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+
+  <!-- contour motif -->
+  <g fill="none" stroke="#1E4D3A" stroke-width="2" opacity="0.12">
+    <path d="M-20 150 Q300 60 600 130 T1220 90" />
+    <path d="M-20 210 Q300 120 600 190 T1220 150" />
+    <path d="M-20 500 Q300 420 600 490 T1220 450" />
+    <path d="M-20 560 Q300 480 600 550 T1220 510" />
+  </g>
+
+  <!-- L-corner ornaments -->
+  <g stroke="#C2902F" stroke-width="4" fill="none">
+    <path d="M60 60 h56 M60 60 v56" />
+    <path d="M1140 60 h-56 M1140 60 v56" />
+    <path d="M60 570 h56 M60 570 v-56" />
+    <path d="M1140 570 h-56 M1140 570 v-56" />
+  </g>
+
+  <!-- logo -->
+  <g transform="translate(600 210)">
+    <circle cx="0" cy="0" r="64" fill="#1E4D3A" />
+    <path d="M0 -38 L30 26 L0 9 L-30 26 Z" fill="#F8F1DF" />
+    <path d="M0 -38 L0 9 L-30 26 Z" fill="#C2902F" />
+  </g>
+
+  <text x="600" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="86" font-weight="700" fill="#2E2519" letter-spacing="1">PetePete</text>
+
+  <text x="600" y="418" text-anchor="middle" font-family="Georgia, serif"
+        font-size="30" fill="#6E5F49">Split the trip, then climb on</text>
+
+  <text x="600" y="474" text-anchor="middle" font-family="Arial, sans-serif"
+        font-size="22" letter-spacing="3" fill="#8A7547">NO LOGIN · JUST SHARE THE LINK</text>
+</svg>
