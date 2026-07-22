@@ -2,7 +2,7 @@
 
 PetePete is a Nuxt 4 app with a Nitro server (the `/api/*` routes). It's
 configured for Vercel (`nitro.preset = 'vercel'` in `nuxt.config.ts`) and pinned
-to Node 20 (`engines.node` in `package.json`).
+to Node 24 (`engines.node` in `package.json`).
 
 **Before deploying:** finish [Supabase setup](./supabase-setup.md) so you have
 `NUXT_SUPABASE_URL` and `NUXT_SUPABASE_SERVICE_KEY`.
@@ -96,8 +96,9 @@ create a bill through the UI as a final check.
 - **No Supabase configured?** The app still boots but uses the in-memory store
   (data resets constantly, and each serverless invocation is isolated), so bills
   will appear to vanish. Always set both env vars in production.
-- **Node version:** pinned to `20.x` via `engines`. If you prefer another,
-  change it there or in Vercel → Project → Settings → Node.js Version.
+- **Node version:** pinned to `24.x` via `engines` (Vercel retired Node 18/20
+  for the functions runtime — 22.x or 24.x are the supported majors). Change it
+  there or in Vercel → Project → Settings → Node.js Version.
 - **Custom domain:** Vercel → Project → Settings → Domains.
 - **Social preview image:** the share card is `public/og.svg` (referenced by the
   OG/Twitter meta). Text previews (title + description) work everywhere. Some
