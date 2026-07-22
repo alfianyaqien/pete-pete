@@ -91,7 +91,7 @@ const taxAmount = computed(() =>
             <avatar-stack
               :participants="peopleOf(it.orderedBy)"
               :max="6"
-              :size="20"
+              :size="26"
               class="mt-1.5"
             />
           </div>

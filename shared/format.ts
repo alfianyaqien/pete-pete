@@ -12,11 +12,19 @@ export function formatAmount(n: number): string {
   return idGroup.format(Math.round(n))
 }
 
-/** Compact stat form: 1280000 → "1,28jt", 96000 → "96rb", 540 → "540". */
+/**
+ * Compact stat form, always prefixed: 1280000 → "Rp 1,28jt", 96000 → "Rp 96k",
+ * 540 → "Rp 540". Thousands use the "k" people actually type (24k, 30k).
+ */
 export function formatCompact(n: number): string {
+  return 'Rp ' + compactDigits(n)
+}
+
+/** The bare compact number, no prefix: 96000 → "96k". */
+function compactDigits(n: number): string {
   const abs = Math.abs(n)
   if (abs >= 1_000_000) return trimComma(n / 1_000_000) + 'jt'
-  if (abs >= 1_000) return Math.round(n / 1_000) + 'rb'
+  if (abs >= 1_000) return Math.round(n / 1_000) + 'k'
   return String(Math.round(n))
 }
 
@@ -25,11 +33,11 @@ function trimComma(v: number): string {
   return v.toFixed(2).replace(/\.?0+$/, '').replace('.', ',')
 }
 
-/** Signed compact balance, e.g. +543000 → "+543rb", -98000 → "−98rb". */
+/** Signed compact balance, e.g. +543000 → "+Rp 543k", -98000 → "−Rp 98k". */
 export function formatSignedCompact(n: number): string {
-  if (n === 0) return '0'
+  if (n === 0) return 'Rp 0'
   const sign = n > 0 ? '+' : '−'
-  return sign + formatCompact(Math.abs(n))
+  return sign + 'Rp ' + compactDigits(Math.abs(n))
 }
 
 const dateFmt = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short' })

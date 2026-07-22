@@ -81,11 +81,18 @@ const fieldClass = computed(
   <label class="block">
     <span v-if="label" class="eyebrow">{{ label }}</span>
     <div class="relative" :class="label ? 'mt-1.5' : ''">
+      <!-- money is always shown with its unit, so the field wears "Rp" too -->
+      <span
+        class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted"
+        :class="variant === 'compact' ? 'left-2 text-xs' : ''"
+      >
+        Rp
+      </span>
       <input
         type="text"
         inputmode="numeric"
         :placeholder="placeholder"
-        :class="[fieldClass, error ? 'border-terracotta' : '']"
+        :class="[fieldClass, error ? 'border-terracotta' : '', variant === 'compact' ? 'pl-7' : 'pl-9']"
         :value="display"
         v-bind="$attrs"
         @input="onInput"

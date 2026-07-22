@@ -99,10 +99,9 @@ const shareMethodOptions = [
   { label: 'By exact amount', value: 'exact' as const },
 ]
 const participantOptions = computed(() =>
-  participants.value.map((p) => ({ label: p.name, value: p.id })),
+  participants.value.map((p) => ({ label: p.name, value: p.id, badgeKey: p.badgeKey })),
 )
 const nameOf = (pid: string) => participants.value.find((p) => p.id === pid)?.name ?? '?'
-const badgeOf = (pid: string) => participants.value.find((p) => p.id === pid)?.badgeKey
 
 // ── live split (simple) ─────────────────────────────────────────────────
 const equalSplit = computed<Record<string, number>>(() => {
@@ -248,8 +247,7 @@ const onSubmit = handleSubmit(async () => {
           <core-segmented-control v-model="payerModeModel" :options="payerModeOptions" />
         </div>
         <div v-if="values.payerMode === 'one'" class="mt-2 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
-          <avatar-badge v-if="payerIdModel" :badge-key="badgeOf(payerIdModel)!" :size="34" />
-          <div class="flex-1">
+          <div class="min-w-0 flex-1">
             <core-select v-model="payerIdModel" :options="participantOptions" variant="bare" />
           </div>
           <money-text :value="values.amount" class="text-sm font-600" />
@@ -314,7 +312,6 @@ const onSubmit = handleSubmit(async () => {
           <core-segmented-control v-model="payerModeModel" :options="payerModeOptions" />
         </div>
         <div v-if="values.payerMode === 'one'" class="mt-2 flex items-center gap-3 rounded-card border border-line-light bg-surface-card px-3 py-2.5">
-          <avatar-badge v-if="payerIdModel" :badge-key="badgeOf(payerIdModel)!" :size="28" />
           <core-select v-model="payerIdModel" :options="participantOptions" variant="bare" class="w-full" />
         </div>
         <payer-rows v-else v-model="payersModel" :participants="participants" class="mt-2" />
@@ -338,8 +335,8 @@ const onSubmit = handleSubmit(async () => {
               <avatar-stack
                 :participants="it.orderedBy.map((pid) => participants.find((p) => p.id === pid)!).filter(Boolean)"
                 :max="5"
-                :size="18"
-                class="mt-0.5"
+                :size="24"
+                class="mt-1"
               />
             </div>
             <money-text :value="it.qty * it.priceEach" class="text-sm font-600" />

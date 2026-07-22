@@ -44,7 +44,7 @@ const people = computed(() => {
         Paid by <span class="font-600 text-body">{{ payerName }}</span>
         <template v-if="entry.type === 'simple'"> · split {{ splitWays }} ways</template>
       </p>
-      <avatar-stack :participants="people" :max="5" :size="20" class="mt-1.5" />
+      <avatar-stack :participants="people" :max="5" :size="26" class="mt-1.5" />
     </div>
     <!-- the whole card opens the detail sheet; the chevron just signals that -->
     <div class="flex flex-none items-center gap-1.5 self-center">

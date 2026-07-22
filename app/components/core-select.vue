@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends string | number">
 import { useField } from 'vee-validate'
+import type { BadgeKey } from '~~/shared/types'
 
 /**
  * CoreSelect — custom listbox, not a native <select>. A real <select> can't
@@ -12,7 +13,9 @@ import { useField } from 'vee-validate'
  */
 const props = withDefaults(
   defineProps<{
-    options: { label: string; value: T }[]
+    /** `badgeKey` is optional — when present the option shows that person's
+     *  trail badge on the left, in both the trigger and the list. */
+    options: { label: string; value: T; badgeKey?: BadgeKey }[]
     name?: string
     modelValue?: T
     label?: string
@@ -34,7 +37,8 @@ const value = computed<T | undefined>({
 const error = computed(() => field?.errorMessage.value)
 
 const open = ref(false)
-const selectedLabel = computed(() => props.options.find((o) => o.value === value.value)?.label ?? '')
+const selected = computed(() => props.options.find((o) => o.value === value.value))
+const selectedLabel = computed(() => selected.value?.label ?? '')
 
 const triggerRef = ref<HTMLButtonElement>()
 const panelUpward = ref(false)
@@ -98,12 +102,13 @@ onBeforeUnmount(() => {
       <button
         ref="triggerRef"
         type="button"
-        class="flex items-center text-left"
+        class="flex items-center gap-2 text-left"
         :class="variant === 'bare' ? 'select-bare' : 'select-field'"
         aria-haspopup="listbox"
         :aria-expanded="open"
         @click="toggle"
       >
+        <avatar-badge v-if="selected?.badgeKey" :badge-key="selected.badgeKey" :size="24" />
         <span class="truncate">{{ selectedLabel }}</span>
       </button>
       <span
@@ -130,11 +135,12 @@ onBeforeUnmount(() => {
               type="button"
               role="option"
               :aria-selected="o.value === value"
-              class="flex w-full items-center justify-between gap-3 rounded-control border-none px-3 py-2 text-left text-sm font-600 cursor-pointer"
+              class="flex w-full items-center gap-2.5 rounded-control border-none px-2.5 py-2 text-left text-sm font-600 cursor-pointer"
               :class="o.value === value ? 'bg-surface-input text-ink' : 'bg-transparent text-body hover:bg-surface-subtle'"
               @click="select(o.value)"
             >
-              {{ o.label }}
+              <avatar-badge v-if="o.badgeKey" :badge-key="o.badgeKey" :size="26" />
+              <span class="flex-1 truncate">{{ o.label }}</span>
               <span v-if="o.value === value" class="i-tabler-check text-forest" />
             </button>
           </li>

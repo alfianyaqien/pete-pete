@@ -92,7 +92,7 @@ const save = handleSubmit((v) => {
           "
           @click="toggle(p.id)"
         >
-          <avatar-badge :badge-key="p.badgeKey" :size="18" />
+          <avatar-badge :badge-key="p.badgeKey" :size="22" />
           <span class="truncate">{{ p.name }}</span>
         </button>
       </div>

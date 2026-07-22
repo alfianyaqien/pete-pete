@@ -94,11 +94,11 @@ const shareOpen = ref(false)
           class="grid grid-cols-[1fr_auto_auto] items-center gap-x-4 border-t border-line-faint px-4 py-2.5"
         >
           <div class="flex items-center gap-2">
-            <avatar-badge :badge-key="badgeOf(b.participantId)!" :size="24" />
+            <avatar-badge :badge-key="badgeOf(b.participantId)!" :size="28" />
             <span class="text-sm">{{ nameOf(b.participantId) }}</span>
           </div>
-          <money-text :value="b.paid" :prefix="false" class="text-right text-sm" />
-          <money-text :value="b.balance" :prefix="false" signed class="text-right text-sm font-600" />
+          <money-text :value="b.paid" class="text-right text-sm" />
+          <money-text :value="b.balance" signed class="text-right text-sm font-600" />
         </div>
       </div>
 
@@ -122,7 +122,7 @@ const shareOpen = ref(false)
           <span class="i-tabler-arrow-right text-muted" />
           <span class="text-sm font-600">{{ nameOf(t.to) }}</span>
           <avatar-badge :badge-key="badgeOf(t.to)!" :size="26" />
-          <money-text :value="t.amount" :prefix="false" class="ml-2 text-sm font-600" />
+          <money-text :value="t.amount" class="ml-2 text-sm font-600" />
         </div>
         <p v-if="!transfers.length" class="py-4 text-center text-sm text-muted">
           Everyone is square — nothing to settle.

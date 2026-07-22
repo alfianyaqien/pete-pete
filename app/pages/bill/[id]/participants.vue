@@ -41,7 +41,7 @@ function onDone(updated: Bill) {
   <template v-if="bill">
     <screen-header back eyebrow="Roster" title="Souls on this trip" @back="navigateTo(`/bill/${id}`)">
       <div class="mt-3 flex items-center gap-3">
-        <avatar-stack :participants="bill.participants" :max="7" :size="28" />
+        <avatar-stack :participants="bill.participants" :max="7" :size="32" />
         <span class="text-xs text-muted">
           {{ bill.participants.length }} souls · {{ frontedCount }} fronted cash
         </span>

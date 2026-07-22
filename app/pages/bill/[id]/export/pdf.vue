@@ -93,7 +93,7 @@ function save() {
               </td>
               <td class="py-1.5">{{ paidBy(e) }}</td>
               <td class="py-1.5 text-muted">{{ splitLabel(e) }}</td>
-              <td class="num py-1.5 text-right font-600">{{ formatAmount(entryTotalOf(e)) }}</td>
+              <td class="num py-1.5 text-right font-600">{{ formatRupiah(entryTotalOf(e)) }}</td>
             </tr>
           </tbody>
         </table>
@@ -112,13 +112,13 @@ function save() {
           <tbody>
             <tr v-for="b in settlement.balances" :key="b.participantId" class="border-b border-line-faint">
               <td class="py-1.5">{{ nameOf(b.participantId) }}</td>
-              <td class="num py-1.5 text-right">{{ formatAmount(b.spent) }}</td>
-              <td class="num py-1.5 text-right">{{ formatAmount(b.paid) }}</td>
+              <td class="num py-1.5 text-right">{{ formatRupiah(b.spent) }}</td>
+              <td class="num py-1.5 text-right">{{ formatRupiah(b.paid) }}</td>
               <td
                 class="num py-1.5 text-right font-600"
                 :class="b.balance >= 0 ? 'text-forest' : 'text-terracotta'"
               >
-                {{ b.balance >= 0 ? '+' : '−' }}{{ formatAmount(Math.abs(b.balance)) }}
+                {{ b.balance >= 0 ? '+' : '−' }}{{ formatRupiah(Math.abs(b.balance)) }}
               </td>
             </tr>
           </tbody>
