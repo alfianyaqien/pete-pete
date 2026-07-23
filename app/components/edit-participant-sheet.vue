@@ -71,7 +71,7 @@ async function remove() {
       </core-input>
 
       <div class="mb-2 mt-4 flex items-center justify-between">
-        <span class="eyebrow">Trail badge</span>
+        <span class="eyebrow">Travel badge</span>
         <span class="text-xs text-muted">{{ participant?.name }} · current</span>
       </div>
       <badge-picker

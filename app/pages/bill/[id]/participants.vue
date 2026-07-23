@@ -111,10 +111,12 @@ function onDone(updated: Bill) {
       >
         <span class="i-tabler-info-circle mt-0.5 text-ochre" />
         <span>
-          Names must be unique — each gets its own trail badge. Removing someone re-balances every
+          Names must be unique — each gets its own travel badge. Removing someone re-balances every
           expense they were in.
         </span>
       </div>
+
+      <made-by class="mt-8" />
     </main>
 
     <bottom-nav active="souls" :bill-id="id" />

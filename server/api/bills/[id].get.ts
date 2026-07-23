@@ -1,6 +1,6 @@
 import { isSlug } from '../../../shared/slug'
 
-/** GET /api/bills/:id — read an expedition by its share-link id (slug). */
+/** GET /api/bills/:id — read a trip by its share-link id (slug). */
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
   // Malformed link → 404 without a DB round-trip.

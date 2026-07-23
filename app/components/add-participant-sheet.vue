@@ -49,7 +49,7 @@ const submit = handleSubmit(async (v) => {
       <core-input name="name" label="Name" placeholder="Rama" @keydown.enter.prevent="submit" />
 
       <div class="mb-2 mt-4 flex items-center justify-between">
-        <span class="eyebrow">Trail badge</span>
+        <span class="eyebrow">Travel badge</span>
         <button
           type="button"
           class="flex items-center gap-1 text-xs font-600 text-muted"

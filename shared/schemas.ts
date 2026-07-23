@@ -17,7 +17,7 @@ const entryTitle = z.string().trim().min(1, 'Required').max(80)
 /** Local calendar date, 'YYYY-MM-DD'. */
 export const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date')
 
-/** The 30 trail-badge animal keys, in handoff order. avatars.ts attaches SVG
+/** The 30 travel-badge animal keys, in handoff order. avatars.ts attaches SVG
  *  path data keyed by these. */
 export const BADGE_KEYS = [
   'ibex', 'owl', 'fox', 'bear', 'stag', 'hare', 'eagle', 'boar', 'raven', 'tortoise',
@@ -84,7 +84,7 @@ export const entrySchema = z.discriminatedUnion('type', [
   sharedOrderEntrySchema,
 ])
 
-// ── bill (expedition) ─────────────────────────────────────────────────────
+// ── bill (trip) ─────────────────────────────────────────────────────
 export const billSchema = z.object({
   id: idSchema,
   title: entryTitle,

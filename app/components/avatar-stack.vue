@@ -2,7 +2,7 @@
 import type { Participant } from '~~/shared/types'
 
 /**
- * Overlapping row of trail badges. Each badge carries its owner's name as a
+ * Overlapping row of travel badges. Each badge carries its owner's name as a
  * tooltip (and the "+N" chip lists the hidden ones), so hovering identifies
  * people without spending any layout on labels.
  */

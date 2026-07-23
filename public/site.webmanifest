@@ -1,0 +1,13 @@
+{
+  "name": "PetePete",
+  "short_name": "PetePete",
+  "description": "Split bills with friends on the road. No login — just share the link.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1E4D3A",
+  "background_color": "#F2E8D3",
+  "icons": [
+    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

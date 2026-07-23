@@ -115,6 +115,8 @@ async function deleteFromDetail() {
         <span class="i-tabler-receipt mx-auto block text-2xl text-muted" />
         <p class="mt-2 text-sm text-body">No entries yet. Add your first expense.</p>
       </div>
+
+      <made-by class="mt-8" />
     </main>
 
     <entry-detail-sheet
@@ -131,6 +133,6 @@ async function deleteFromDetail() {
   </template>
 
   <div v-else class="flex flex-1 items-center justify-center p-8 text-center text-muted">
-    Expedition not found.
+    Trip not found.
   </div>
 </template>

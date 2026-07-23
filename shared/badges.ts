@@ -2,7 +2,7 @@ import { BADGE_KEYS } from './schemas'
 import type { BadgeKey } from './types'
 
 /**
- * Auto-assign a trail badge to a new participant, preferring an unused one.
+ * Auto-assign a travel badge to a new participant, preferring an unused one.
  * With more than 30 souls the keys repeat — then we pick the least-used badge.
  */
 export function nextBadge(taken: readonly BadgeKey[]): BadgeKey {

@@ -59,7 +59,7 @@ function save() {
               <span class="text-xs font-700 uppercase tracking-[.2em]">PetePete</span>
             </div>
             <h1 class="mt-2 font-serif text-3xl font-700">{{ bill.title }}</h1>
-            <p class="text-xs text-muted">Expedition ledger · {{ formatDateShort(bill.createdAt) }}</p>
+            <p class="text-xs text-muted">Trip ledger · {{ formatDateShort(bill.createdAt) }}</p>
           </div>
           <div class="text-right">
             <p class="eyebrow">Total tally</p>

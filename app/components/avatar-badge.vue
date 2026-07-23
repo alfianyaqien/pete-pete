@@ -16,7 +16,7 @@ const avatar = computed(() => AVATAR_BY_KEY[props.badgeKey] ?? AVATAR_BY_KEY.ibe
     :height.attr="size"
     viewBox="0 0 60 60"
     role="img"
-    :aria-label="`${avatar.label} trail badge`"
+    :aria-label="`${avatar.label} travel badge`"
   >
     <circle cx="30" cy="30" r="28" fill="#E7D9BC" :stroke="avatar.ring" stroke-width="2" />
     <!-- art is trusted static markup ported from the design handoff -->

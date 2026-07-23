@@ -70,7 +70,7 @@ const onSubmit = handleSubmit(async (values) => {
         <span class="i-tabler-info-circle mt-0.5 text-ochre" />
         <span>
           No login needed. The share link is the key — anyone with it can view &amp; edit. Names must
-          be unique; each gets a trail badge.
+          be unique; each gets a travel badge.
         </span>
       </div>
     </form>

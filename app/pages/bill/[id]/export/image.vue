@@ -71,7 +71,7 @@ function save() {
         <p v-if="!transfers.length" class="text-sm text-muted">Everyone is square.</p>
       </div>
 
-      <p class="mt-6 text-[11px] text-muted">PetePete · settle up, then climb on</p>
+      <p class="mt-6 text-[11px] text-muted">PetePete · settle up, stay friends</p>
     </div>
   </div>
 </template>

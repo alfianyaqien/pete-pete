@@ -2,7 +2,7 @@ import { BADGE_KEYS } from './schemas'
 import type { BadgeKey } from './types'
 
 /**
- * The 30 "trail badge" woodcut avatars, ported verbatim from the design handoff
+ * The 30 "travel badge" woodcut avatars, ported verbatim from the design handoff
  * (PetePete.dc.html "Avatar set" block). Each entry is the inner line-drawing
  * markup of an SVG `<g>`; the AvatarBadge component wraps it with the shared
  * parchment disc + stroke group. The colored ring rotates forest → ochre →

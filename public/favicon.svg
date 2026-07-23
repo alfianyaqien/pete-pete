@@ -1,6 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <circle cx="16" cy="16" r="15" fill="#1E4D3A" />
-  <path d="M16 7 L23 22 L16 18 L9 22 Z" fill="#F8F1DF" />
-  <path d="M16 7 L16 18 L9 22 Z" fill="#C2902F" />
-  <circle cx="16" cy="16" r="15" fill="none" stroke="#143729" stroke-width="1" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Simplified PetePete mark for tiny sizes: the receipt silhouette, its torn
+       edge and the compass rose survive at 16px; the centre dot and text line
+       do not, so they're dropped here. Full mark: app/components/pp-logo.vue -->
+  <circle cx="32" cy="32" r="31" fill="#1E4D3A"/>
+  <path d="M17 13 H47 a3 3 0 0 1 3 3 V45
+           l-3 5 l-3 -5 l-3 5 l-3 -5 l-3 5 l-3 -5 l-3 5 l-3 -5 l-3 5 l-3 -5 l-3 5 l-3 -5
+           V16 a3 3 0 0 1 3 -3 z" fill="#F8F1DF"/>
+  <path d="M32 15 L36.5 22.5 L44 27 L36.5 31.5 L32 39 L27.5 31.5 L20 27 L27.5 22.5 Z" fill="#1E4D3A"/>
+  <path d="M32 15 L36.5 22.5 L27.5 22.5 Z" fill="#C2902F"/>
 </svg>

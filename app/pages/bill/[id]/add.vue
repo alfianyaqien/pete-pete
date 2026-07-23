@@ -316,13 +316,13 @@ const onSubmit = handleSubmit(async () => {
         </div>
         <payer-rows v-else v-model="payersModel" :participants="participants" class="mt-2" />
 
-        <button
+        <!-- <button
           type="button"
           class="mt-3 flex w-full items-center justify-center gap-2 rounded-card border border-dashed border-line-medium bg-surface-subtle py-3 text-sm font-600 text-body"
           @click="error = 'Receipt scan is coming soon'"
         >
           <span class="i-tabler-camera text-ochre" /> Scan receipt · auto-fill items
-        </button>
+        </button> -->
 
         <div class="mb-2 mt-5 flex items-center justify-between">
           <span class="eyebrow">Orders</span>

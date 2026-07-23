@@ -138,6 +138,8 @@ const shareOpen = ref(false)
           <span class="i-tabler-download" /> Export
         </core-button>
       </div>
+
+      <made-by class="mt-8" />
     </main>
 
     <bottom-nav active="settle" :bill-id="id" />

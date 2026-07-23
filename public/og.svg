@@ -24,18 +24,25 @@
     <path d="M1140 570 h-56 M1140 570 v-56" />
   </g>
 
-  <!-- logo -->
-  <g transform="translate(600 210)">
-    <circle cx="0" cy="0" r="64" fill="#1E4D3A" />
-    <path d="M0 -38 L30 26 L0 9 L-30 26 Z" fill="#F8F1DF" />
-    <path d="M0 -38 L0 9 L-30 26 Z" fill="#C2902F" />
+  <!-- logo: torn receipt carrying a compass needle (see app/components/pp-logo.vue) -->
+  <g transform="translate(600 210) scale(2)">
+    <g transform="translate(-32 -32)">
+      <circle cx="32" cy="32" r="31" fill="#1E4D3A" />
+      <path d="M17 13 H47 a3 3 0 0 1 3 3 V45
+               l-3 5 l-3 -5 l-3 5 l-3 -5 l-3 5 l-3 -5 l-3 5 l-3 -5 l-3 5 l-3 -5 l-3 5 l-3 -5
+               V16 a3 3 0 0 1 3 -3 z" fill="#F8F1DF" />
+      <path d="M32 16 L36 23 L43 27 L36 31 L32 38 L28 31 L21 27 L28 23 Z" fill="#1E4D3A" />
+      <path d="M32 16 L36 23 L28 23 Z" fill="#C2902F" />
+      <circle cx="32" cy="27" r="1.6" fill="#F8F1DF" />
+      <rect x="25" y="41" width="14" height="2" rx="1" fill="#C9BFA6" />
+    </g>
   </g>
 
   <text x="600" y="360" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
         font-size="86" font-weight="700" fill="#2E2519" letter-spacing="1">PetePete</text>
 
   <text x="600" y="418" text-anchor="middle" font-family="Georgia, serif"
-        font-size="30" fill="#6E5F49">Split the trip, then climb on</text>
+        font-size="30" fill="#6E5F49">Split bills with friends on the road</text>
 
   <text x="600" y="474" text-anchor="middle" font-family="Arial, sans-serif"
         font-size="22" letter-spacing="3" fill="#8A7547">NO LOGIN · JUST SHARE THE LINK</text>

@@ -1,6 +1,6 @@
 -- PetePete initial schema.
 --
--- A bill ("expedition") is always loaded and saved as a whole, addressed by its
+-- A bill ("trip") is always loaded and saved as a whole, addressed by its
 -- share-link id, with no relational queries across bills. So participants and
 -- entries are stored as JSONB on the bill row; the application layer (Zod
 -- schemas in shared/) enforces their shape on read. This keeps the data access

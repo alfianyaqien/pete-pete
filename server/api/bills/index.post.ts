@@ -1,6 +1,6 @@
 import { createBillInputSchema } from '../../../shared/schemas'
 
-/** POST /api/bills — create an expedition. */
+/** POST /api/bills — create a trip. */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const parsed = createBillInputSchema.safeParse(body)

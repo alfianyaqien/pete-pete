@@ -10,7 +10,7 @@
     <p class="eyebrow mt-5">Trip ledger · split bills</p>
     <h1 class="mt-1 font-serif text-3xl font-700 text-ink">PetePete</h1>
     <p class="mt-3 max-w-xs text-sm text-body">
-      Start an expedition, add who came along, and split the costs. No login — the
+      Start a trip, add who came along, and split the costs. No login, the
       share link is the key, so anyone you send it to can view &amp; edit.
     </p>
 
@@ -22,4 +22,8 @@
       <span class="i-tabler-link" /> Have a link? Open it to jump straight to that trip.
     </p>
   </main>
+
+  <footer class="app-col px-6 pb-6 pt-2">
+    <made-by />
+  </footer>
 </template>

@@ -14,7 +14,7 @@ import type { BadgeKey } from '~~/shared/types'
 const props = withDefaults(
   defineProps<{
     /** `badgeKey` is optional — when present the option shows that person's
-     *  trail badge on the left, in both the trigger and the list. */
+     *  travel badge on the left, in both the trigger and the list. */
     options: { label: string; value: T; badgeKey?: BadgeKey }[]
     name?: string
     modelValue?: T
