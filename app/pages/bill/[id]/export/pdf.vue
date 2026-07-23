@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { settleBill } from '~~/shared/settle'
-import { billStats, entryTotalOf, personLedgers } from '~~/shared/stats'
+import { billStats, entryTotalOf, personLedgers, payersLabel } from '~~/shared/stats'
 import { formatRupiah, formatDateShort } from '~~/shared/format'
 import { elementToPdf } from '~/utils/exporters'
 import type { Entry } from '~~/shared/types'
@@ -19,7 +19,7 @@ const settlement = computed(() =>
 const ledgers = computed(() => (bill.value ? personLedgers(bill.value) : []))
 const nameOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.name ?? '?'
 
-const paidBy = (e: Entry) => nameOf(e.payers[0]?.participantId ?? '')
+const paidBy = (e: Entry) => (bill.value ? payersLabel(e, bill.value.participants) : '')
 
 // chronological (oldest first) for a printed ledger
 const sortedEntries = computed(() =>

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { personLedgers, billTotal } from './stats'
+import { personLedgers, billTotal, payersLabel } from './stats'
 import { computeBalances } from './settle'
-import type { Bill } from './types'
+import type { Bill, Entry } from './types'
 
 const P = (id: string, name: string) => ({ id, name, badgeKey: 'fox' as const })
 
@@ -75,5 +75,25 @@ describe('personLedgers', () => {
     const cy = byId['c']!
     expect(cy.owed.map((o) => o.label)).not.toContain('Warung — Nasi Goreng')
     expect(cy.owed.map((o) => o.label)).toContain('Warung — Es Teh')
+  })
+})
+
+describe('payersLabel', () => {
+  const parts = bill.participants
+  const mk = (payerIds: string[]): Entry => ({
+    id: 'x',
+    type: 'simple',
+    title: 't',
+    date: '2026-07-23',
+    amount: 0,
+    payers: payerIds.map((participantId) => ({ participantId, amount: 0 })),
+    shareMethod: 'equally',
+    sharers: [],
+  })
+
+  it('names one, two, and abbreviates three+ payers', () => {
+    expect(payersLabel(mk(['a']), parts)).toBe('Ana')
+    expect(payersLabel(mk(['a', 'b']), parts)).toBe('Ana & Bud')
+    expect(payersLabel(mk(['a', 'b', 'c']), parts)).toBe('Ana, Bud +1')
   })
 })

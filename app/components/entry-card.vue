@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import type { Entry, Participant } from '~~/shared/types'
-import { entryTotalOf } from '~~/shared/stats'
+import { entryTotalOf, payersLabel } from '~~/shared/stats'
 
 const props = defineProps<{ entry: Entry; participants: Participant[] }>()
 defineEmits<{ open: [] }>()
 
-const nameOf = (id: string) => props.participants.find((p) => p.id === id)?.name ?? '?'
 const total = computed(() => entryTotalOf(props.entry))
 
-const payerName = computed(() => nameOf(props.entry.payers[0]?.participantId ?? ''))
+const payerName = computed(() => payersLabel(props.entry, props.participants))
 const splitWays = computed(() =>
   props.entry.type === 'simple' ? props.entry.sharers.length : 0,
 )

@@ -1,9 +1,22 @@
 import { sharedOrderTotal, computeBalances, allocateEntry, splitProportional } from './settle'
-import type { Bill, Entry, Balance } from './types'
+import type { Bill, Entry, Balance, Participant } from './types'
 
 /** Grand total of a single entry. */
 export function entryTotalOf(entry: Entry): number {
   return entry.type === 'simple' ? entry.amount : sharedOrderTotal(entry)
+}
+
+/**
+ * Short "paid by" label that reflects every payer, not just the first:
+ * one → "Iqbal", two → "Iqbal & Dewi", more → "Iqbal, Dewi +1".
+ */
+export function payersLabel(entry: Entry, participants: Participant[]): string {
+  const name = (id: string) => participants.find((p) => p.id === id)?.name ?? '?'
+  const p = entry.payers
+  if (p.length === 0) return '—'
+  if (p.length === 1) return name(p[0]!.participantId)
+  if (p.length === 2) return `${name(p[0]!.participantId)} & ${name(p[1]!.participantId)}`
+  return `${name(p[0]!.participantId)}, ${name(p[1]!.participantId)} +${p.length - 2}`
 }
 
 export interface EntryGroup {
