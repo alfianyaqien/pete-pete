@@ -123,9 +123,18 @@ export function computeBalances(bill: Bill): Balance[] {
 
 // ── minimal settlement (greedy min cash flow) ─────────────────────────────
 /**
- * Reduce balances to the minimal set of transfers that clears everyone.
- * Greedy: repeatedly match the largest creditor with the largest debtor.
- * Produces at most (n−1) transfers.
+ * Reduce balances to a small, clean set of transfers that clears everyone.
+ *
+ * Opposite-sort greedy: match the LARGEST creditors against the SMALLEST
+ * debtors. A small debtor is then swallowed whole in one clean transfer instead
+ * of being shaved into tiny "sliver" transfers (e.g. Rp 6.990), while the
+ * leftover accumulates on a large creditor that has room to absorb it. This
+ * costs the same as a plain greedy and yields the same (minimum, n−1 when no
+ * zero-sum subgroup exists) transfer count — it only makes the smallest transfer
+ * larger. Amounts are integer rupiah, so this is exact.
+ *
+ * Ties are broken by participantId, so the output is fully deterministic: the
+ * same balances always produce the same transfers, whatever order they arrive in.
  */
 export function settle(balances: Balance[]): Transfer[] {
   const creditors = balances
@@ -135,8 +144,8 @@ export function settle(balances: Balance[]): Transfer[] {
     .filter((b) => b.balance < 0)
     .map((b) => ({ id: b.participantId, amt: -b.balance }))
 
-  creditors.sort((a, b) => b.amt - a.amt)
-  debtors.sort((a, b) => b.amt - a.amt)
+  creditors.sort((a, b) => b.amt - a.amt || a.id.localeCompare(b.id)) // largest first
+  debtors.sort((a, b) => a.amt - b.amt || a.id.localeCompare(b.id)) // smallest first
 
   const transfers: Transfer[] = []
   let ci = 0

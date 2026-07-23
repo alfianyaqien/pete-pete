@@ -158,3 +158,27 @@ describe('multi-entry bill — settlement invariants', () => {
     expect(transfers.every((t) => Number.isInteger(t.amount) && t.amount > 0)).toBe(true)
   })
 })
+
+describe('settle — opposite-sort greedy + determinism', () => {
+  const B = (participantId: string, balance: number): Balance => ({
+    participantId,
+    spent: 0,
+    paid: 0,
+    balance,
+  })
+  // creditors C1=100, C2=30 · debtors D1=90, D2=40 (sums to zero)
+  const balances = [B('C1', 100), B('C2', 30), B('D1', -90), B('D2', -40)]
+
+  it('avoids sliver transfers and still clears everyone', () => {
+    const transfers = settle(balances)
+    expect(transfers).toHaveLength(3)
+    // big-vs-big would emit a 10 sliver; opposite-sort's smallest transfer is 30
+    expect(Math.min(...transfers.map((t) => t.amount))).toBe(30)
+    assertClears(balances, transfers)
+  })
+
+  it('is deterministic — same balances, any input order → identical transfers', () => {
+    const shuffled = [B('D2', -40), B('C2', 30), B('D1', -90), B('C1', 100)]
+    expect(settle(shuffled)).toEqual(settle(balances))
+  })
+})
