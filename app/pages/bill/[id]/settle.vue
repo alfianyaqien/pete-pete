@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { settleBill } from '~~/shared/settle'
-import { billStats } from '~~/shared/stats'
+import { billStats, personLedgers } from '~~/shared/stats'
+import { formatRupiah } from '~~/shared/format'
 
 const route = useRoute()
 const id = route.params.id as string
@@ -21,6 +22,10 @@ const transfers = computed(() => result.value.transfers)
 
 const nameOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.name ?? '?'
 const badgeOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.badgeKey
+
+const ledgers = computed(() => (bill.value ? personLedgers(bill.value) : []))
+/** Signed money for owed lines (a discount line is negative). */
+const owedText = (n: number) => (n < 0 ? '−' : '') + formatRupiah(Math.abs(n))
 
 const myBalance = computed(() => result.value.balances.find((b) => b.participantId === me.value?.id))
 const owedBack = computed(() => Math.max(0, myBalance.value?.balance ?? 0))
@@ -129,6 +134,52 @@ const shareOpen = ref(false)
         </p>
       </div>
 
+      <!-- What each paid & owes -->
+      <p class="eyebrow mb-2 mt-6">What each paid &amp; owes</p>
+      <div class="flex flex-col gap-2">
+        <details
+          v-for="l in ledgers"
+          :key="l.participantId"
+          class="card-parchment overflow-hidden px-3.5 py-2.5"
+        >
+          <summary class="flex cursor-pointer select-none items-center gap-2.5">
+            <avatar-badge :badge-key="badgeOf(l.participantId)!" :size="28" />
+            <span class="flex-1 text-sm font-600">{{ l.name }}</span>
+            <money-text :value="l.net" signed class="text-sm font-600" />
+            <span class="chev i-tabler-chevron-down text-muted transition-transform" />
+          </summary>
+          <div class="mt-2.5 flex flex-col gap-3 border-t border-line-faint pt-2.5">
+            <div v-if="l.paid.length">
+              <p class="text-[10px] font-700 uppercase tracking-wide text-forest">Paid up front</p>
+              <div
+                v-for="(p, i) in l.paid"
+                :key="'p' + i"
+                class="mt-0.5 flex items-baseline text-xs"
+              >
+                <span class="min-w-0 truncate text-body">{{ p.title }}</span>
+                <span class="leader" />
+                <money-text :value="p.amount" class="shrink-0 text-body" />
+              </div>
+            </div>
+            <div v-if="l.owed.length">
+              <p class="text-[10px] font-700 uppercase tracking-wide text-muted">Owes</p>
+              <div
+                v-for="(o, i) in l.owed"
+                :key="'o' + i"
+                class="mt-0.5 flex items-baseline text-xs"
+              >
+                <span class="min-w-0 truncate text-body">{{ o.label }}</span>
+                <span class="leader" />
+                <span class="num shrink-0 text-body">{{ owedText(o.amount) }}</span>
+              </div>
+            </div>
+            <p v-if="!l.paid.length && !l.owed.length" class="text-xs text-muted">
+              Not involved in any expense.
+            </p>
+          </div>
+        </details>
+      </div>
+
       <!-- actions -->
       <div class="mt-6 flex gap-2">
         <core-button class="flex-1" @click="shareToWhatsApp(settlementRecap(bill, transfers))">
@@ -148,3 +199,24 @@ const shareOpen = ref(false)
 
   <div v-else class="flex flex-1 items-center justify-center p-8 text-muted">Not found.</div>
 </template>
+
+<style scoped>
+/* accordion: hide the native disclosure triangle, flip our chevron when open */
+summary {
+  list-style: none;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+details[open] .chev {
+  transform: rotate(180deg);
+}
+/* dotted leader connecting a label to its amount */
+.leader {
+  flex: 1 1 auto;
+  align-self: flex-end;
+  min-width: 14px;
+  margin: 0 6px 3px;
+  border-bottom: 1px dotted var(--pp-line-medium, #c2b79a);
+}
+</style>

@@ -2,6 +2,7 @@
 import { settleBill } from '~~/shared/settle'
 import { billStats } from '~~/shared/stats'
 import { formatRupiah } from '~~/shared/format'
+import { elementToPng } from '~/utils/exporters'
 
 definePageMeta({ layout: false })
 useHead({ title: 'Settlement Image' })
@@ -15,8 +16,20 @@ const transfers = computed(() => (bill.value ? settleBill(bill.value).transfers 
 const nameOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.name ?? '?'
 const badgeOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.badgeKey
 
-function save() {
-  if (import.meta.client) window.print()
+const saving = ref(false)
+const error = ref('')
+async function save() {
+  const node = document.getElementById('settle-card')
+  if (!node || !bill.value) return
+  saving.value = true
+  error.value = ''
+  try {
+    await elementToPng(node, `PetePete - ${bill.value.title}.png`, '#f4ead7')
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Could not save the image'
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
@@ -30,10 +43,11 @@ function save() {
       <core-button variant="ghost" @click="navigateTo(`/bill/${id}/settle`)">
         <span class="i-tabler-arrow-left" /> Back
       </core-button>
-      <core-button variant="ochre" @click="save">
-        <span class="i-tabler-download" /> Save as image
+      <core-button variant="ochre" :loading="saving" @click="save">
+        <span class="i-tabler-download" /> Download PNG
       </core-button>
     </div>
+    <p v-if="error" class="no-print chip-neg">{{ error }}</p>
 
     <!-- settlement card artifact -->
     <div

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { settleBill } from '~~/shared/settle'
-import { billStats, entryTotalOf } from '~~/shared/stats'
-import { formatRupiah, formatAmount, formatDateShort } from '~~/shared/format'
+import { billStats, entryTotalOf, personLedgers } from '~~/shared/stats'
+import { formatRupiah, formatDateShort } from '~~/shared/format'
+import { elementToPdf } from '~/utils/exporters'
 import type { Entry } from '~~/shared/types'
 
 definePageMeta({ layout: false })
@@ -15,21 +16,33 @@ const stats = computed(() => (bill.value ? billStats(bill.value) : null))
 const settlement = computed(() =>
   bill.value ? settleBill(bill.value) : { balances: [], transfers: [] },
 )
+const ledgers = computed(() => (bill.value ? personLedgers(bill.value) : []))
 const nameOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.name ?? '?'
 
-function paidBy(e: Entry): string {
-  const first = nameOf(e.payers[0]?.participantId ?? '')
-  return e.payers.length > 1 ? `${first} & ${e.payers.length - 1}` : first
-}
-const splitLabel = (e: Entry) => (e.type === 'simple' ? `${e.sharers.length} ways` : 'shared')
+const paidBy = (e: Entry) => nameOf(e.payers[0]?.participantId ?? '')
 
 // chronological (oldest first) for a printed ledger
 const sortedEntries = computed(() =>
   [...(bill.value?.entries ?? [])].sort((a, b) => a.date.localeCompare(b.date)),
 )
 
-function save() {
-  if (import.meta.client) window.print()
+/** Signed money for owed lines (a discount line is negative). */
+const owedText = (n: number) => (n < 0 ? '−' : '') + formatRupiah(Math.abs(n))
+
+const saving = ref(false)
+const error = ref('')
+async function save() {
+  const node = document.getElementById('pdf-page')
+  if (!node || !bill.value) return
+  saving.value = true
+  error.value = ''
+  try {
+    await elementToPdf(node, `PetePete - ${bill.value.title}.pdf`)
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Could not build the PDF'
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 
@@ -39,20 +52,20 @@ function save() {
       <core-button variant="ghost" @click="navigateTo(`/bill/${id}/settle`)">
         <span class="i-tabler-arrow-left" /> Back
       </core-button>
-      <core-button variant="danger" @click="save">
+      <core-button variant="danger" :loading="saving" @click="save">
         <span class="i-tabler-download" /> Download PDF
       </core-button>
     </div>
+    <p v-if="error" class="no-print mx-auto mb-4 max-w-[794px] chip-neg">{{ error }}</p>
 
     <article
       v-if="bill"
       id="pdf-page"
-      class="mx-auto max-w-[794px] overflow-hidden rounded-card bg-white shadow-card"
+      class="mx-auto max-w-[794px] overflow-hidden bg-white shadow-card"
       style="background: #fffdf7"
     >
-      <div style="height: 6px; background: #1e4d3a" />
       <div class="p-9 text-ink">
-        <header class="flex items-start justify-between">
+        <header data-pdf-block class="flex items-start justify-between">
           <div>
             <div class="flex items-center gap-2">
               <pp-logo :size="24" />
@@ -68,75 +81,88 @@ function save() {
           </div>
         </header>
 
-        <!-- Expenses -->
-        <h2 class="eyebrow mb-2 mt-7">Expenses</h2>
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-line-medium text-left text-[11px] uppercase text-muted">
-              <th class="py-1.5 font-600">Date</th>
-              <th class="py-1.5 font-600">Entry</th>
-              <th class="py-1.5 font-600">Paid by</th>
-              <th class="py-1.5 font-600">Split</th>
-              <th class="py-1.5 text-right font-600">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="e in sortedEntries" :key="e.id" class="border-b border-line-faint">
-              <td class="num whitespace-nowrap py-1.5 text-muted">{{ formatDateShort(e.date) }}</td>
-              <td class="py-1.5">
-                {{ e.title }}
-                <span
-                  v-if="e.type === 'shared_order'"
-                  class="ml-1 rounded-chip-sm bg-warn-fill px-1 py-0.5 text-[9px] font-600 text-warn-text"
-                  >shared</span
-                >
-              </td>
-              <td class="py-1.5">{{ paidBy(e) }}</td>
-              <td class="py-1.5 text-muted">{{ splitLabel(e) }}</td>
-              <td class="num py-1.5 text-right font-600">{{ formatRupiah(entryTotalOf(e)) }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- 1 · Expenses -->
+        <h2 data-pdf-block data-pdf-heading class="eyebrow mb-1 mt-7">1 · Expenses</h2>
+        <div class="flex flex-col">
+          <div
+            v-for="e in sortedEntries"
+            :key="e.id"
+            data-pdf-block
+            class="flex items-baseline border-b border-line-faint py-1.5 text-sm"
+          >
+            <span class="num w-16 shrink-0 text-muted">{{ formatDateShort(e.date) }}</span>
+            <span class="shrink-0 font-500">{{ e.title }}</span>
+            <span
+              v-if="e.type === 'shared_order'"
+              class="ml-1 shrink-0 rounded-chip-sm bg-warn-fill px-1 py-0.5 text-[9px] font-600 text-warn-text"
+              >bill</span
+            >
+            <span class="ml-2 shrink-0 text-xs text-muted">{{ paidBy(e) }}</span>
+            <span class="leader" />
+            <span class="num shrink-0 font-600">{{ formatRupiah(entryTotalOf(e)) }}</span>
+          </div>
+        </div>
 
-        <!-- Balances -->
-        <h2 class="eyebrow mb-2 mt-7">Balances</h2>
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="border-b border-line-medium text-left text-[11px] uppercase text-muted">
-              <th class="py-1.5 font-600">Person</th>
-              <th class="py-1.5 text-right font-600">Spent</th>
-              <th class="py-1.5 text-right font-600">Paid</th>
-              <th class="py-1.5 text-right font-600">Balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="b in settlement.balances" :key="b.participantId" class="border-b border-line-faint">
-              <td class="py-1.5">{{ nameOf(b.participantId) }}</td>
-              <td class="num py-1.5 text-right">{{ formatRupiah(b.spent) }}</td>
-              <td class="num py-1.5 text-right">{{ formatRupiah(b.paid) }}</td>
-              <td
-                class="num py-1.5 text-right font-600"
-                :class="b.balance >= 0 ? 'text-forest' : 'text-terracotta'"
+        <!-- 2 · Settlement transfers -->
+        <h2 data-pdf-block data-pdf-heading class="eyebrow mb-1 mt-7">2 · Settlement transfers</h2>
+        <div class="flex flex-col">
+          <div
+            v-for="(t, i) in settlement.transfers"
+            :key="i"
+            data-pdf-block
+            class="flex items-baseline border-b border-line-faint py-1.5 text-sm"
+          >
+            <span class="shrink-0 font-500">{{ nameOf(t.from) }}</span>
+            <span class="mx-1.5 shrink-0 text-ochre">→</span>
+            <span class="shrink-0 font-500">{{ nameOf(t.to) }}</span>
+            <span class="leader" />
+            <span class="num shrink-0 font-600">{{ formatRupiah(t.amount) }}</span>
+          </div>
+          <p v-if="!settlement.transfers.length" data-pdf-block class="py-1.5 text-sm text-muted">
+            Everyone is square — nothing to settle.
+          </p>
+        </div>
+
+        <!-- 3 · Who paid & who owes -->
+        <h2 data-pdf-block data-pdf-heading class="eyebrow mb-2 mt-7">3 · Who paid &amp; who owes</h2>
+        <div class="flex flex-col gap-4">
+          <div v-for="l in ledgers" :key="l.participantId" data-pdf-block>
+            <div class="flex items-baseline justify-between border-b border-line-medium pb-1">
+              <span class="font-600">{{ l.name }}</span>
+              <span
+                class="num text-sm font-600"
+                :class="l.net >= 0 ? 'text-forest' : 'text-terracotta'"
               >
-                {{ b.balance >= 0 ? '+' : '−' }}{{ formatRupiah(Math.abs(b.balance)) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Settlement -->
-        <div class="mt-7 rounded-card border border-line-medium bg-surface-subtle p-4">
-          <h2 class="eyebrow mb-2">Settlement · {{ settlement.transfers.length }} transfers</h2>
-          <div class="flex flex-col gap-1.5 text-sm">
-            <div v-for="(t, i) in settlement.transfers" :key="i" class="flex justify-between">
-              <span>{{ nameOf(t.from) }} → {{ nameOf(t.to) }}</span>
-              <span class="num font-600">{{ formatRupiah(t.amount) }}</span>
+                {{ l.net >= 0 ? '+' : '−' }}{{ formatRupiah(Math.abs(l.net)) }}
+                {{ l.net >= 0 ? 'owed back' : 'owes' }}
+              </span>
+            </div>
+            <div class="mt-1.5 grid grid-cols-1 gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
+              <div v-if="l.paid.length">
+                <p class="text-[10px] font-700 uppercase tracking-wide text-forest">Paid</p>
+                <div v-for="(p, i) in l.paid" :key="'p' + i" class="flex items-baseline">
+                  <span class="text-body">{{ p.title }}</span>
+                  <span class="leader" />
+                  <span class="num shrink-0">{{ formatRupiah(p.amount) }}</span>
+                </div>
+              </div>
+              <div v-if="l.owed.length">
+                <p class="text-[10px] font-700 uppercase tracking-wide text-muted">Owes</p>
+                <div v-for="(o, i) in l.owed" :key="'o' + i" class="flex items-baseline">
+                  <span class="text-body">{{ o.label }}</span>
+                  <span class="leader" />
+                  <span class="num shrink-0">{{ owedText(o.amount) }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <footer class="mt-8 border-t border-line-faint pt-3 text-center text-[11px] text-muted">
-          Generated by PetePete · petepete.app · Page 1 of 1
+        <footer
+          data-pdf-block
+          class="mt-8 border-t border-line-faint pt-3 text-center text-[11px] text-muted"
+        >
+          Generated by PetePete · Made by Ahmad Iqbal · ahmadiqball.com
         </footer>
       </div>
     </article>
@@ -144,16 +170,17 @@ function save() {
 </template>
 
 <style scoped>
+/* dotted leader connecting a label to its price */
+.leader {
+  flex: 1 1 auto;
+  align-self: flex-end;
+  min-width: 16px;
+  margin: 0 6px 4px;
+  border-bottom: 1px dotted #c2b79a;
+}
 @media print {
   .no-print {
     display: none !important;
   }
-  #pdf-page {
-    box-shadow: none;
-    max-width: none;
-  }
-}
-@page {
-  margin: 1cm;
 }
 </style>

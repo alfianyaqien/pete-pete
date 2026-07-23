@@ -34,7 +34,7 @@ const rows = computed(() => [
     key: 'image' as const,
     icon: 'photo',
     tone: 'text-ochre',
-    title: 'Settlement image',
+    title: 'Download settlement PNG',
     sub: 'Who pays whom · square card for chat',
     arrow: 'i-tabler-arrow-down',
     act: goImage,
