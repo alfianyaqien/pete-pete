@@ -12,6 +12,7 @@ const { data: bill } = await useBill(id)
 
 useHead({ title: editId ? 'Edit Expense' : 'Add Expense' })
 const { me } = useIdentity(bill)
+const toast = useToast()
 
 interface ItemRow extends OrderItemDraft {
   id: string
@@ -200,9 +201,11 @@ const onSubmit = handleSubmit(async () => {
       method: editId ? 'PUT' : 'POST',
       body: parsed.data,
     })
+    toast.success(editId ? 'Expense updated' : 'Expense added', values.title)
     await navigateTo(`/bill/${id}`)
   } catch (e: any) {
     error.value = e?.data?.statusMessage || 'Could not save expense'
+    toast.error('Couldn’t save expense', error.value)
   }
 })
 </script>

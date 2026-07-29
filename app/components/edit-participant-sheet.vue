@@ -14,6 +14,7 @@ const { handleSubmit, values, setFieldValue, resetForm, isSubmitting } = useForm
 
 const serverError = ref('')
 const removing = ref(false)
+const toast = useToast()
 
 watch(
   [open, () => props.participant],
@@ -34,10 +35,12 @@ const submit = handleSubmit(async (v) => {
       `/api/bills/${props.billId}/participants/${props.participant.id}`,
       { method: 'PATCH', body: v },
     )
+    toast.success('Participant saved', v.name)
     emit('done', bill)
     open.value = false
   } catch (e: any) {
     serverError.value = e?.data?.statusMessage || 'Could not save'
+    toast.error('Couldn’t save participant', serverError.value)
   }
 })
 
@@ -49,10 +52,12 @@ async function remove() {
       `/api/bills/${props.billId}/participants/${props.participant.id}`,
       { method: 'DELETE' },
     )
+    toast.success('Removed from trip', props.participant.name)
     emit('done', bill)
     open.value = false
   } catch (e: any) {
     serverError.value = e?.data?.statusMessage || 'Could not remove'
+    toast.error('Couldn’t remove participant', serverError.value)
   } finally {
     removing.value = false
   }

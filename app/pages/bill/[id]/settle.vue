@@ -32,6 +32,23 @@ const owedBack = computed(() => Math.max(0, myBalance.value?.balance ?? 0))
 const iOwe = computed(() => Math.max(0, -(myBalance.value?.balance ?? 0)))
 const peopleOweMe = computed(() => transfers.value.filter((t) => t.to === me.value?.id).length)
 
+/** Items nobody has claimed yet — the settlement holds them on the payer until
+ *  claimed, so flag it so people know to go tap "that's mine". */
+const unclaimed = computed(() => {
+  let count = 0
+  let amount = 0
+  for (const e of bill.value?.entries ?? []) {
+    if (e.type !== 'shared_order') continue
+    for (const it of e.items) {
+      if (it.orderedBy.length === 0) {
+        count++
+        amount += it.qty * it.priceEach
+      }
+    }
+  }
+  return { count, amount }
+})
+
 const fronters = computed(() =>
   result.value.balances.filter((b) => b.paid > 0).map((b) => nameOf(b.participantId)),
 )
@@ -55,6 +72,21 @@ const shareOpen = ref(false)
     </screen-header>
 
     <main class="app-col flex-1 overflow-y-auto px-5 pb-28 pt-4">
+      <!-- unclaimed nudge: settlement is provisional until everything is claimed -->
+      <button
+        v-if="unclaimed.count"
+        type="button"
+        class="mb-4 flex w-full items-center gap-2.5 rounded-card border border-ochre/50 bg-ochre/10 px-3.5 py-2.5 text-left border-solid"
+        @click="navigateTo(`/bill/${id}`)"
+      >
+        <span class="i-tabler-hand-finger shrink-0 text-lg text-ochre" />
+        <span class="flex-1 text-xs text-body">
+          <b>{{ unclaimed.count }} item{{ unclaimed.count === 1 ? '' : 's' }} unclaimed</b>
+          ({{ formatRupiah(unclaimed.amount) }}) — held by whoever paid until claimed. Tap to open the ledger and claim.
+        </span>
+        <span class="i-tabler-chevron-right text-muted" />
+      </button>
+
       <!-- Your standing -->
       <hero-panel>
         <div class="flex items-center justify-between">
@@ -182,8 +214,8 @@ const shareOpen = ref(false)
 
       <!-- actions -->
       <div class="mt-6 flex gap-2">
-        <core-button class="flex-1" @click="shareToWhatsApp(settlementRecap(bill, transfers))">
-          <span class="i-tabler-brand-whatsapp" /> Share
+        <core-button class="flex-1" @click="navigateTo(`/bill/${id}/export/image`)">
+          <span class="i-tabler-share-2" /> Share
         </core-button>
         <core-button variant="ghost" class="flex-1" @click="shareOpen = true">
           <span class="i-tabler-download" /> Export

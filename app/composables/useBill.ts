@@ -22,16 +22,18 @@ export function useBill(id: string) {
 }
 
 /**
- * Resolve "who the viewer is" for a bill from the identity store, falling back
- * to the first participant. Also exposes a setter for the identity chip.
+ * Resolve "who the viewer is" for a bill from the identity store. Returns null
+ * until the viewer explicitly picks — there is NO default participant, so an
+ * action like claiming an item can require a deliberate choice first. Also
+ * exposes a setter for the identity chip.
  */
 export function useIdentity(bill: Ref<Bill | null | undefined>) {
   const store = useIdentityStore()
   const me = computed<Participant | null>(() => {
     const b = unref(bill)
-    if (!b || b.participants.length === 0) return null
+    if (!b) return null
     const id = store.forBill(b.id)
-    return b.participants.find((p) => p.id === id) ?? b.participants[0]
+    return b.participants.find((p) => p.id === id) ?? null
   })
   function setMe(participantId: string) {
     const b = unref(bill)

@@ -13,6 +13,7 @@ import {
   addEntry,
   updateEntry,
   removeEntry,
+  setItemClaim,
   type ParticipantPatch,
 } from '../../../shared/operations'
 import { buildBill } from '../../utils/buildBill'
@@ -69,5 +70,8 @@ export class MemoryBillRepository implements BillRepository {
   }
   async removeEntry(id: string, entryId: string): Promise<Bill | null> {
     return this.mutate(id, (b) => removeEntry(b, entryId))
+  }
+  async claimItem(id: string, eid: string, itemId: string, pid: string, claimed: boolean) {
+    return this.mutate(id, (b) => setItemClaim(b, eid, itemId, pid, claimed))
   }
 }

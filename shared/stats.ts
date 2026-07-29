@@ -1,4 +1,4 @@
-import { sharedOrderTotal, computeBalances, allocateEntry, splitProportional } from './settle'
+import { sharedOrderTotal, computeBalances, allocateEntry, splitProportional, itemOwners } from './settle'
 import type { Bill, Entry, Balance, Participant } from './types'
 
 /** Grand total of a single entry. */
@@ -116,16 +116,20 @@ export function personLedgers(bill: Bill): PersonLedger[] {
         continue
       }
 
-      // shared order: one owed line per item they ordered, then a fee line
-      if (!e.items.some((it) => it.orderedBy.includes(p.id))) continue
+      // shared order: one owed line per item they ordered (or hold, if unclaimed
+      // and they paid), then a fee line. Uses the same owner resolution as the
+      // settlement so `net` stays exactly each person's balance.
+      const payerIds = e.payers.map((x) => x.participantId)
       let itemSum = 0
       for (const it of e.items) {
-        const idx = it.orderedBy.indexOf(p.id)
+        const owners = itemOwners(it.orderedBy, payerIds)
+        const idx = owners.indexOf(p.id)
         if (idx < 0) continue
-        const parts = splitProportional(it.qty * it.priceEach, it.orderedBy.map(() => 1))
+        const parts = splitProportional(it.qty * it.priceEach, owners.map(() => 1))
         const share = parts[idx]!
         itemSum += share
-        owed.push({ label: `${e.title} — ${it.name}`, amount: share })
+        const held = it.orderedBy.length === 0 // unclaimed → held by the payer
+        owed.push({ label: `${e.title} — ${it.name}${held ? ' (unclaimed)' : ''}`, amount: share })
       }
       // remainder vs the authoritative allocation is this person's fee/discount share
       const feeShare = (allocateEntry(e).shares[p.id] ?? 0) - itemSum

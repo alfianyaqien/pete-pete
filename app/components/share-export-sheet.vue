@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import type { Bill, Transfer } from '~~/shared/types'
-import { settlementRecap, shareToWhatsApp } from '~/composables/useShare'
 
 const open = defineModel<boolean>('open', { default: false })
 const props = defineProps<{ bill: Bill; transfers: Transfer[] }>()
 
-const selected = ref<'whatsapp' | 'image' | 'pdf'>('pdf')
+const selected = ref<'image' | 'pdf'>('image')
 
-function onWhatsApp() {
-  shareToWhatsApp(settlementRecap(props.bill, props.transfers))
-  open.value = false
-}
 function goImage() {
   open.value = false
   navigateTo(`/bill/${props.bill.id}/export/image`)
@@ -22,21 +17,12 @@ function goPdf() {
 
 const rows = computed(() => [
   {
-    key: 'whatsapp' as const,
-    icon: 'brand-whatsapp',
-    tone: 'text-forest',
-    title: 'Share to WhatsApp',
-    sub: 'Settlement as a text recap + link',
-    arrow: 'i-tabler-arrow-right',
-    act: onWhatsApp,
-  },
-  {
     key: 'image' as const,
     icon: 'photo',
     tone: 'text-ochre',
-    title: 'Download settlement PNG',
-    sub: 'Who pays whom · square card for chat',
-    arrow: 'i-tabler-arrow-down',
+    title: 'Share settlement image',
+    sub: 'Who pays whom · send the card to chat, or save it',
+    arrow: 'i-tabler-arrow-right',
     act: goImage,
   },
   {

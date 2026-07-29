@@ -2,7 +2,8 @@
 import { settleBill } from '~~/shared/settle'
 import { billStats } from '~~/shared/stats'
 import { formatRupiah } from '~~/shared/format'
-import { elementToPng } from '~/utils/exporters'
+import { elementToPng, elementToPngBlob } from '~/utils/exporters'
+import { shareImageFile, settlementRecap } from '~/composables/useShare'
 
 definePageMeta({ layout: false })
 useHead({ title: 'Settlement Image' })
@@ -17,18 +18,40 @@ const nameOf = (pid: string) => bill.value?.participants.find((p) => p.id === pi
 const badgeOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.badgeKey
 
 const saving = ref(false)
+const sharing = ref(false)
 const error = ref('')
+
+function filename() {
+  return `PetePete - ${bill.value?.title ?? 'settlement'}.png`
+}
+
 async function save() {
   const node = document.getElementById('settle-card')
   if (!node || !bill.value) return
   saving.value = true
   error.value = ''
   try {
-    await elementToPng(node, `PetePete - ${bill.value.title}.png`, '#f4ead7')
+    await elementToPng(node, filename(), '#f4ead7')
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Could not save the image'
   } finally {
     saving.value = false
+  }
+}
+
+/** Rasterise the card and hand it to the OS share sheet (image, not text). */
+async function share() {
+  const node = document.getElementById('settle-card')
+  if (!node || !bill.value) return
+  sharing.value = true
+  error.value = ''
+  try {
+    const blob = await elementToPngBlob(node, '#f4ead7')
+    await shareImageFile(blob, filename(), settlementRecap(bill.value, transfers.value))
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Could not share the image'
+  } finally {
+    sharing.value = false
   }
 }
 </script>
@@ -43,9 +66,14 @@ async function save() {
       <core-button variant="ghost" @click="navigateTo(`/bill/${id}/settle`)">
         <span class="i-tabler-arrow-left" /> Back
       </core-button>
-      <core-button variant="ochre" :loading="saving" @click="save">
-        <span class="i-tabler-download" /> Download PNG
-      </core-button>
+      <div class="flex items-center gap-2">
+        <core-button variant="ghost" :loading="saving" @click="save">
+          <span class="i-tabler-download" /> Save
+        </core-button>
+        <core-button variant="ochre" :loading="sharing" @click="share">
+          <span class="i-tabler-share-2" /> Share
+        </core-button>
+      </div>
     </div>
     <p v-if="error" class="no-print chip-neg">{{ error }}</p>
 

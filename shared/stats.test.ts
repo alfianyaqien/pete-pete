@@ -78,6 +78,43 @@ describe('personLedgers', () => {
   })
 })
 
+describe('personLedgers — unclaimed items', () => {
+  const withUnclaimed: Bill = {
+    id: 'b2',
+    title: 'Trip',
+    createdAt: '2026-07-24T00:00:00.000Z',
+    lunas: false,
+    participants: [P('a', 'Ana'), P('b', 'Bud'), P('c', 'Cy')],
+    entries: [
+      {
+        id: 'e1',
+        type: 'shared_order',
+        title: 'Warung',
+        date: '2026-07-24',
+        payers: [{ participantId: 'a', amount: 100000 }],
+        items: [
+          { id: 'i1', name: 'Nasi', qty: 1, priceEach: 40000, orderedBy: ['b'] },
+          { id: 'i2', name: 'Mystery', qty: 1, priceEach: 60000, orderedBy: [] },
+        ],
+        fees: { taxPercent: 0, service: 0, other: 0 },
+        discount: 0,
+      },
+    ],
+  }
+
+  it('net still equals each person’s balance, and the payer holds the unclaimed line', () => {
+    const ledgers = personLedgers(withUnclaimed)
+    const balances = Object.fromEntries(
+      computeBalances(withUnclaimed).map((b) => [b.participantId, b.balance]),
+    )
+    for (const l of ledgers) expect(l.net).toBe(balances[l.participantId])
+
+    const ana = ledgers.find((l) => l.participantId === 'a')!
+    // Ana fronted the whole bill and holds the unclaimed item as an owed line
+    expect(ana.owed.map((o) => o.label)).toContain('Warung — Mystery (unclaimed)')
+  })
+})
+
 describe('payersLabel', () => {
   const parts = bill.participants
   const mk = (payerIds: string[]): Entry => ({

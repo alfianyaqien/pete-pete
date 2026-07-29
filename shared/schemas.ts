@@ -61,7 +61,9 @@ export const orderItemSchema = z.object({
   name: entryTitle,
   qty: z.number().int().positive(),
   priceEach: rupiah,
-  orderedBy: z.array(idSchema).min(1),
+  // May be empty: an UNCLAIMED item nobody has assigned yet. It's provisionally
+  // held by whoever paid until someone claims it (see shared/settle.ts).
+  orderedBy: z.array(idSchema),
 })
 export const feesSchema = z.object({
   taxPercent: z.number().min(0).max(100),
@@ -140,3 +142,9 @@ export const entryInputSchema = z.discriminatedUnion('type', [
   simpleEntryInputSchema,
   sharedOrderEntryInputSchema,
 ])
+
+/** Claim / unclaim one shared-order item as a given participant. */
+export const itemClaimInputSchema = z.object({
+  participantId: idSchema,
+  claimed: z.boolean(),
+})

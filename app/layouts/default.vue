@@ -9,5 +9,6 @@
     style="background: var(--pp-screen-mobile)"
   >
     <slot />
+    <toast-host />
   </div>
 </template>

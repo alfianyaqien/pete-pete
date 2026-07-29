@@ -12,10 +12,21 @@ const open = defineModel<boolean>('open', { default: false })
 const props = defineProps<{
   entry: Entry | null
   participants: Participant[]
+  /** The viewer, so they can claim/unclaim items as themselves. */
+  me?: Participant | null
+  /** id of the item currently being claimed (shows a spinner). */
+  claiming?: string | null
+  /** shown when a claim was attempted with no identity picked. */
+  claimError?: string
   deleting?: boolean
   error?: string
 }>()
-defineEmits<{ edit: []; delete: [] }>()
+defineEmits<{
+  edit: []
+  delete: []
+  claim: [{ itemId: string; claimed: boolean }]
+  setIdentity: [string]
+}>()
 
 // Deleting is irreversible and there's no undo, so require a second tap.
 const confirming = ref(false)
@@ -77,23 +88,63 @@ const taxAmount = computed(() =>
 
       <!-- itemised order -->
       <template v-if="entry.type === 'shared_order'">
-        <p class="eyebrow mt-4">Orders</p>
-        <div class="mt-1.5 flex flex-col gap-2">
+        <div class="mt-4 flex items-center justify-between gap-2">
+          <p class="eyebrow">Orders</p>
+          <identity-chip
+            :participants="participants"
+            :model-value="me?.id ?? null"
+            tone="light"
+            @update:model-value="$emit('setIdentity', $event)"
+          />
+        </div>
+        <p v-if="claimError" class="chip-neg mt-2 flex items-center gap-1.5">
+          <span class="i-tabler-alert-triangle" /> {{ claimError }}
+        </p>
+        <div class="mt-2 flex flex-col gap-2">
           <div
             v-for="it in entry.items"
             :key="it.id"
-            class="rounded-card border border-line-light bg-surface-card px-3 py-2"
+            class="rounded-card border px-3 py-2"
+            :class="
+              it.orderedBy.length
+                ? 'border-line-light bg-surface-card'
+                : 'border-dashed border-ochre/60 bg-ochre/5'
+            "
           >
             <div class="flex items-center justify-between gap-2">
               <span class="text-sm font-600">{{ it.name }} ×{{ it.qty }}</span>
               <money-text :value="it.qty * it.priceEach" class="text-sm" />
             </div>
-            <avatar-stack
-              :participants="peopleOf(it.orderedBy)"
-              :max="6"
-              :size="26"
-              class="mt-1.5"
-            />
+            <div class="mt-1.5 flex items-center justify-between gap-2">
+              <avatar-stack
+                v-if="it.orderedBy.length"
+                :participants="peopleOf(it.orderedBy)"
+                :max="6"
+                :size="26"
+              />
+              <span
+                v-else
+                class="inline-flex items-center gap-1 rounded-chip-sm bg-ochre/15 px-2 py-0.5 text-[11px] font-700 text-ochre"
+              >
+                <span class="i-tabler-question-mark" /> Unclaimed
+              </span>
+              <button
+                v-if="me"
+                type="button"
+                class="shrink-0 rounded-control border px-2.5 py-1 text-xs font-600 transition-colors border-solid disabled:opacity-60"
+                :class="
+                  it.orderedBy.includes(me.id)
+                    ? 'border-forest bg-forest text-white'
+                    : 'border-line-medium text-forest'
+                "
+                :disabled="claiming === it.id"
+                @click="$emit('claim', { itemId: it.id, claimed: !it.orderedBy.includes(me.id) })"
+              >
+                <span v-if="claiming === it.id" class="i-tabler-loader-2 animate-spin" />
+                <template v-else-if="it.orderedBy.includes(me.id)"><span class="i-tabler-check" /> Mine</template>
+                <template v-else><span class="i-tabler-hand-finger" /> That's mine</template>
+              </button>
+            </div>
           </div>
         </div>
 

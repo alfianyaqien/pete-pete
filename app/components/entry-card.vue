@@ -17,6 +17,13 @@ const peopleOf = (ids: string[]) =>
     .map((id) => props.participants.find((p) => p.id === id))
     .filter((p): p is Participant => !!p)
 
+/** How many items on a Bill still have nobody assigned. */
+const unclaimedCount = computed(() =>
+  props.entry.type === 'shared_order'
+    ? props.entry.items.filter((it) => it.orderedBy.length === 0).length
+    : 0,
+)
+
 /** Who this expense involves: sharers for a Single, orderers for a Bill. */
 const people = computed(() => {
   if (props.entry.type === 'simple') {
@@ -43,7 +50,15 @@ const people = computed(() => {
         Paid by <span class="font-600 text-body">{{ payerName }}</span>
         <template v-if="entry.type === 'simple'"> · split {{ splitWays }} ways</template>
       </p>
-      <avatar-stack :participants="people" :max="5" :size="26" class="mt-1.5" />
+      <div class="mt-1.5 flex items-center gap-2">
+        <avatar-stack v-if="people.length" :participants="people" :max="5" :size="26" />
+        <span
+          v-if="unclaimedCount"
+          class="inline-flex items-center gap-1 rounded-chip-sm bg-ochre/15 px-2 py-0.5 text-[11px] font-700 text-ochre"
+        >
+          <span class="i-tabler-hand-finger" /> {{ unclaimedCount }} to claim
+        </span>
+      </div>
     </div>
     <!-- the whole card opens the detail sheet; the chevron just signals that -->
     <div class="flex flex-none items-center gap-1.5 self-center">

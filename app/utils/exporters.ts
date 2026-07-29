@@ -35,12 +35,16 @@ async function fontsReady() {
   }
 }
 
-/** Rasterise a DOM node to a PNG file — pixel-for-pixel what's on screen. */
-export async function elementToPng(node: HTMLElement, filename: string, bg = '#f4ead7') {
+/** Rasterise a DOM node to a PNG Blob — pixel-for-pixel what's on screen. */
+export async function elementToPngBlob(node: HTMLElement, bg = '#f4ead7'): Promise<Blob> {
   await fontsReady()
   const { domToBlob } = await import('modern-screenshot')
-  const blob = await withTimeout(domToBlob(node, { scale: 2, backgroundColor: bg }), 20000)
-  downloadBlob(blob, filename)
+  return withTimeout(domToBlob(node, { scale: 2, backgroundColor: bg }), 20000)
+}
+
+/** Rasterise a DOM node and download it as a PNG. */
+export async function elementToPng(node: HTMLElement, filename: string, bg = '#f4ead7') {
+  downloadBlob(await elementToPngBlob(node, bg), filename)
 }
 
 /**

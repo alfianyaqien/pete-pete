@@ -21,6 +21,14 @@ export interface BillRepository {
   addEntry(billId: string, input: EntryInput): Promise<Bill | null>
   updateEntry(billId: string, entryId: string, input: EntryInput): Promise<Bill | null>
   removeEntry(billId: string, entryId: string): Promise<Bill | null>
+
+  claimItem(
+    billId: string,
+    entryId: string,
+    itemId: string,
+    participantId: string,
+    claimed: boolean,
+  ): Promise<Bill | null>
 }
 
 export interface Repositories {

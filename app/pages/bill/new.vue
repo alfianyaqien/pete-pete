@@ -11,6 +11,7 @@ const { handleSubmit, isSubmitting } = useForm({
 const { fields, push, remove } = useFieldArray<ParticipantInput>('participants')
 
 useHead({ title: 'Create Bill' })
+const toast = useToast()
 
 // preview badges follow the same order the server auto-assigns (BADGE_KEYS[i])
 const previewBadge = (i: number) => BADGE_KEYS[i % BADGE_KEYS.length]!
@@ -20,9 +21,11 @@ const onSubmit = handleSubmit(async (values) => {
   serverError.value = ''
   try {
     const bill = await $fetch<Bill>('/api/bills', { method: 'POST', body: values })
+    toast.success('Trip created', bill.title)
     await navigateTo(`/bill/${bill.id}`)
   } catch (e: any) {
     serverError.value = e?.data?.statusMessage || 'Could not create bill'
+    toast.error('Couldn’t create trip', serverError.value)
   }
 })
 </script>

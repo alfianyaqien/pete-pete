@@ -108,18 +108,22 @@ function stripFromSimple(e: SimpleEntry, pid: string): SimpleEntry | null {
 }
 
 function stripFromShared(e: SharedOrderEntry, pid: string): SharedOrderEntry | null {
-  const items = e.items
-    .map((it) => ({ ...it, orderedBy: it.orderedBy.filter((x) => x !== pid) }))
-    .filter((it) => it.orderedBy.length > 0)
-  if (items.length === 0) return null
+  // Keep items even if they become owner-less — they just turn UNCLAIMED and are
+  // held by the payer until reclaimed (see itemOwners in shared/settle.ts).
+  const items = e.items.map((it) => ({ ...it, orderedBy: it.orderedBy.filter((x) => x !== pid) }))
 
   // keep sum(payers.amount) === total (removing a payer never changes the total)
   const total = sharedOrderTotal(e)
   let payers = e.payers.filter((p) => p.participantId !== pid)
-  payers =
-    payers.length === 0
-      ? [{ participantId: items[0].orderedBy[0], amount: total }]
-      : rebalance(total, payers, (p) => p.amount, (p, v) => ({ ...p, amount: v }))
+  if (payers.length === 0) {
+    // sole payer left: hand the front to any remaining owner; if the whole entry
+    // is now person-less, drop it (nobody on the bill is tied to it anymore).
+    const fallback = items.flatMap((it) => it.orderedBy)[0]
+    if (!fallback) return null
+    payers = [{ participantId: fallback, amount: total }]
+  } else {
+    payers = rebalance(total, payers, (p) => p.amount, (p, v) => ({ ...p, amount: v }))
+  }
 
   return { ...e, items, payers }
 }
@@ -157,4 +161,44 @@ export function updateEntry(bill: Bill, entryId: string, input: EntryInput): Bil
 
 export function removeEntry(bill: Bill, entryId: string): Bill {
   return { ...bill, entries: bill.entries.filter((e) => e.id !== entryId) }
+}
+
+// ── claim / unclaim a shared-order item ────────────────────────────────────
+/**
+ * Toggle a participant's ownership of one shared-order item. Claiming adds them
+ * to `orderedBy` (moving that item's cost off the payer who was holding it onto
+ * the claimers); unclaiming removes them (and if they were the last owner, the
+ * item goes back to being held by the payer). No-op if the entry/item is missing
+ * or the state already matches.
+ */
+export function setItemClaim(
+  bill: Bill,
+  entryId: string,
+  itemId: string,
+  participantId: string,
+  claimed: boolean,
+): Bill {
+  if (!bill.participants.some((p) => p.id === participantId)) {
+    throw new Error('Unknown participant')
+  }
+  return {
+    ...bill,
+    entries: bill.entries.map((e) => {
+      if (e.id !== entryId || e.type !== 'shared_order') return e
+      return {
+        ...e,
+        items: e.items.map((it) => {
+          if (it.id !== itemId) return it
+          const has = it.orderedBy.includes(participantId)
+          if (claimed === has) return it
+          return {
+            ...it,
+            orderedBy: claimed
+              ? [...it.orderedBy, participantId]
+              : it.orderedBy.filter((x) => x !== participantId),
+          }
+        }),
+      }
+    }),
+  }
 }

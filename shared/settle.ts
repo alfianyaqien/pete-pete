@@ -56,6 +56,18 @@ export function sharedOrderTotal(entry: Extract<Entry, { type: 'shared_order' }>
   return sub + tax + entry.fees.service + entry.fees.other - entry.discount
 }
 
+/**
+ * Who a shared-order item is charged to. Normally its `orderedBy`, but an
+ * UNCLAIMED item (empty `orderedBy`) is provisionally held by whoever fronted
+ * the cash — so its cost is covered by the payer(s) and the ledger stays
+ * zero-sum until someone claims it. Since `payerIds` is always non-empty, every
+ * rupiah of every item is allocated to a real person. Claiming an item just
+ * moves that cost from the payer(s) to the claimer(s).
+ */
+export function itemOwners(orderedBy: string[], payerIds: string[]): string[] {
+  return orderedBy.length ? orderedBy : payerIds
+}
+
 export function allocateEntry(entry: Entry): EntryAllocation {
   const shares: Record<string, number> = {}
   const payments: Record<string, number> = {}
@@ -75,11 +87,13 @@ export function allocateEntry(entry: Entry): EntryAllocation {
   const sub = itemsSubtotal(entry)
   const total = sharedOrderTotal(entry)
   const perPersonItems: Record<string, number> = {}
+  const payerIds = entry.payers.map((p) => p.participantId)
 
   for (const item of entry.items) {
     const cost = item.qty * item.priceEach
-    const parts = splitProportional(cost, item.orderedBy.map(() => 1))
-    item.orderedBy.forEach((id, i) => {
+    const owners = itemOwners(item.orderedBy, payerIds)
+    const parts = splitProportional(cost, owners.map(() => 1))
+    owners.forEach((id, i) => {
       add(perPersonItems, id, parts[i])
       add(shares, id, parts[i])
     })

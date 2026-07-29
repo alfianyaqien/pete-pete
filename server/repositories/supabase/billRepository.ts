@@ -15,6 +15,7 @@ import {
   addEntry,
   updateEntry,
   removeEntry,
+  setItemClaim,
   type ParticipantPatch,
 } from '../../../shared/operations'
 import { buildBill } from '../../utils/buildBill'
@@ -119,6 +120,9 @@ export class SupabaseBillRepository implements BillRepository {
   }
   removeEntry(id: string, entryId: string) {
     return this.mutate(id, (b) => removeEntry(b, entryId))
+  }
+  claimItem(id: string, eid: string, itemId: string, pid: string, claimed: boolean) {
+    return this.mutate(id, (b) => setItemClaim(b, eid, itemId, pid, claimed))
   }
 }
 

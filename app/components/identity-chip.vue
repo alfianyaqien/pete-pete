@@ -14,9 +14,8 @@ const props = withDefaults(
 const emit = defineEmits<{ 'update:modelValue': [string] }>()
 
 const open = ref(false)
-const current = computed(
-  () => props.participants.find((p) => p.id === props.modelValue) ?? props.participants[0] ?? null,
-)
+// No default: unset stays unset so the viewer must deliberately pick.
+const current = computed(() => props.participants.find((p) => p.id === props.modelValue) ?? null)
 
 const triggerRef = ref<HTMLButtonElement>()
 const panelStyle = ref<Record<string, string>>({})
@@ -79,22 +78,25 @@ onBeforeUnmount(() => {
     ref="triggerRef"
     type="button"
     class="inline-flex items-center gap-1.5 rounded-pill py-1.5 pl-1.5 pr-2.5 text-sm font-600"
-    :class="
+    :class="[
       tone === 'dark'
         ? 'bg-white/12 text-surface-card'
-        : 'border border-line-light bg-surface-card text-ink'
-    "
+        : 'border bg-surface-card text-ink',
+      // when unset (light tone), nudge with a dashed ochre ring
+      current || tone === 'dark' ? 'border-line-light' : 'border-dashed border-ochre text-ochre',
+    ]"
     aria-haspopup="listbox"
     :aria-expanded="open"
     @click="toggle"
   >
     <avatar-badge v-if="current" :badge-key="current.badgeKey" :size="24" />
-    <span>You're {{ current?.name ?? '—' }}</span>
+    <span v-else class="i-tabler-user-question ml-0.5 text-base" />
+    <span>{{ current ? `You're ${current.name}` : 'Who are you?' }}</span>
     <span class="i-tabler-chevron-down text-xs transition-transform" :class="open ? 'rotate-180' : ''" />
   </button>
 
   <Teleport to="body">
-    <div v-if="open" class="fixed inset-0 z-50" @click="open = false">
+    <div v-if="open" class="fixed inset-0 z-[60]" @click="open = false">
       <Transition name="pop">
         <div
           class="absolute max-h-[280px] overflow-y-auto rounded-card border border-line-light bg-surface-card p-1.5 text-ink shadow-card"

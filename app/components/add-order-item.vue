@@ -40,7 +40,9 @@ function checkAll() {
 }
 
 const lineTotal = computed(() => (values.qty || 0) * (values.priceEach || 0))
-const canSave = computed(() => values.name.trim().length > 0 && values.orderedBy.length > 0)
+// Leaving "ordered by" empty is allowed — the item is saved UNCLAIMED so people
+// can claim it themselves later (handy when nobody remembers who ordered what).
+const canSave = computed(() => values.name.trim().length > 0)
 
 const save = handleSubmit((v) => {
   emit('save', { ...v, name: v.name.trim(), orderedBy: [...v.orderedBy] })
@@ -74,7 +76,7 @@ const save = handleSubmit((v) => {
       </div>
 
       <div class="mb-2 mt-4 flex items-center justify-between">
-        <span class="eyebrow">Ordered by</span>
+        <span class="eyebrow">Ordered by <span class="text-muted normal-case">· optional</span></span>
         <button type="button" class="text-xs font-600 text-forest" @click="checkAll">
           <span class="i-tabler-checks" /> {{ allChecked ? 'Clear' : 'Check all' }}
         </button>
@@ -98,7 +100,11 @@ const save = handleSubmit((v) => {
       </div>
 
       <div class="rule-double mt-4 flex items-center justify-between pt-3">
-        <span class="text-sm text-body">Line total · split {{ values.orderedBy.length }} ways</span>
+        <span class="text-sm text-body">
+          Line total ·
+          <template v-if="values.orderedBy.length">split {{ values.orderedBy.length }} ways</template>
+          <span v-else class="font-600 text-ochre">unclaimed — claim it later</span>
+        </span>
         <span class="num font-600">{{ formatRupiah(lineTotal) }}</span>
       </div>
 

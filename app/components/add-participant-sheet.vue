@@ -15,6 +15,7 @@ const { handleSubmit, values, setFieldValue, resetForm, isSubmitting } = useForm
 })
 
 const serverError = ref('')
+const toast = useToast()
 
 watch(open, (o) => {
   if (o) {
@@ -35,10 +36,12 @@ const submit = handleSubmit(async (v) => {
       method: 'POST',
       body: v,
     })
+    toast.success('Participant added', v.name)
     emit('done', bill)
     open.value = false
   } catch (e: any) {
     serverError.value = e?.data?.statusMessage || 'Could not add participant'
+    toast.error('Couldn’t add participant', serverError.value)
   }
 })
 </script>

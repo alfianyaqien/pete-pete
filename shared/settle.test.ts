@@ -7,6 +7,7 @@ import {
   settle,
   settleBill,
 } from './settle'
+import { setItemClaim } from './operations'
 import type { Bill, Participant, Transfer, Balance } from './types'
 
 const P = (id: string): Participant => ({ id, name: id, badgeKey: 'fox' })
@@ -180,5 +181,60 @@ describe('settle — opposite-sort greedy + determinism', () => {
   it('is deterministic — same balances, any input order → identical transfers', () => {
     const shuffled = [B('D2', -40), B('C2', 30), B('D1', -90), B('C1', 100)]
     expect(settle(shuffled)).toEqual(settle(balances))
+  })
+})
+
+describe('unclaimed items — held by payer, moved on claim', () => {
+  const bill: Bill = {
+    id: 'u1',
+    title: 'Warung',
+    createdAt: new Date().toISOString(),
+    lunas: false,
+    participants: ['Ana', 'Bud', 'Cy'].map(P),
+    entries: [
+      {
+        id: 'e1',
+        type: 'shared_order',
+        title: 'Dinner',
+        date: '2026-07-24',
+        payers: [{ participantId: 'Ana', amount: 100_000 }],
+        items: [
+          { id: 'i1', name: 'Nasi', qty: 1, priceEach: 40_000, orderedBy: ['Bud'] },
+          { id: 'i2', name: 'Mystery', qty: 1, priceEach: 60_000, orderedBy: [] }, // unclaimed
+        ],
+        fees: { taxPercent: 0, service: 0, other: 0 },
+        discount: 0,
+      },
+    ],
+  }
+
+  const byId = (b: Bill) =>
+    Object.fromEntries(computeBalances(b).map((x) => [x.participantId, x.balance]))
+
+  it('keeps balances zero-sum with the payer holding the unclaimed item', () => {
+    const balances = computeBalances(bill)
+    expect(balances.reduce((a, b) => a + b.balance, 0)).toBe(0)
+    const by = byId(bill)
+    // Ana fronted 100k and holds the 60k mystery item → net +40k; Bud owes 40k
+    expect(by.Ana).toBe(40_000)
+    expect(by.Bud).toBe(-40_000)
+    expect(by.Cy).toBe(0)
+  })
+
+  it('moves the cost onto the claimer when they claim it', () => {
+    const by = byId(setItemClaim(bill, 'e1', 'i2', 'Cy', true))
+    expect(by.Ana).toBe(100_000) // now owed the full front
+    expect(by.Bud).toBe(-40_000)
+    expect(by.Cy).toBe(-60_000)
+  })
+
+  it('claim then unclaim returns to the held-by-payer state', () => {
+    const claimed = setItemClaim(bill, 'e1', 'i2', 'Cy', true)
+    const reverted = setItemClaim(claimed, 'e1', 'i2', 'Cy', false)
+    expect(byId(reverted)).toEqual(byId(bill))
+  })
+
+  it('rejects a claim from someone not on the bill', () => {
+    expect(() => setItemClaim(bill, 'e1', 'i2', 'ghost', true)).toThrow()
   })
 })
