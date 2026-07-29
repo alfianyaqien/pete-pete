@@ -59,6 +59,15 @@ const frontedBy = computed(() =>
 )
 
 const shareOpen = ref(false)
+
+/** The settle page carries a lot — split its three sections into tabs. Default
+ *  to the transfers ("who settles whom"), the headline result of settling. */
+const tab = ref<'balances' | 'transfers' | 'breakdown'>('transfers')
+const tabs = [
+  { label: 'Balances', value: 'balances' as const },
+  { label: 'Transfers', value: 'transfers' as const },
+  { label: 'Breakdown', value: 'breakdown' as const },
+]
 </script>
 
 <template>
@@ -117,9 +126,13 @@ const shareOpen = ref(false)
         </div>
       </hero-panel>
 
+      <!-- section tabs -->
+      <core-segmented-control v-model="tab" class="mt-5" :options="tabs" />
+
       <!-- Where everyone stands -->
-      <p class="eyebrow mb-2 mt-5">Where everyone stands</p>
-      <div class="card-parchment overflow-hidden">
+      <section v-show="tab === 'balances'" class="mt-4">
+        <p class="eyebrow mb-2">Where everyone stands</p>
+        <div class="card-parchment overflow-hidden">
         <div class="grid grid-cols-[1fr_auto_auto] gap-x-4 px-4 py-2 text-[10px] uppercase tracking-wide text-muted">
           <span>Person</span>
           <span class="text-right">Paid</span>
@@ -137,11 +150,13 @@ const shareOpen = ref(false)
           <money-text :value="b.paid" class="text-right text-sm" />
           <money-text :value="b.balance" signed class="text-right text-sm font-600" />
         </div>
-      </div>
+        </div>
+      </section>
 
       <!-- Who settles whom -->
-      <p class="eyebrow mb-2 mt-5">Who settles whom</p>
-      <p class="mb-2 text-sm text-body">
+      <section v-show="tab === 'transfers'" class="mt-4">
+        <p class="eyebrow mb-2">Who settles whom</p>
+        <p class="mb-2 text-sm text-body">
         {{ transfers.length }} transfer{{ transfers.length === 1 ? '' : 's' }} clear{{
           transfers.length === 1 ? 's' : ''
         }}
@@ -164,11 +179,13 @@ const shareOpen = ref(false)
         <p v-if="!transfers.length" class="py-4 text-center text-sm text-muted">
           Everyone is square — nothing to settle.
         </p>
-      </div>
+        </div>
+      </section>
 
       <!-- What each paid & owes -->
-      <p class="eyebrow mb-2 mt-6">What each paid &amp; owes</p>
-      <div class="flex flex-col gap-2">
+      <section v-show="tab === 'breakdown'" class="mt-4">
+        <p class="eyebrow mb-2">What each paid &amp; owes</p>
+        <div class="flex flex-col gap-2">
         <details
           v-for="l in ledgers"
           :key="l.participantId"
@@ -210,7 +227,8 @@ const shareOpen = ref(false)
             </p>
           </div>
         </details>
-      </div>
+        </div>
+      </section>
 
       <!-- actions -->
       <div class="mt-6 flex gap-2">
