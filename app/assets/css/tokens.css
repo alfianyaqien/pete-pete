@@ -67,6 +67,36 @@ select::-ms-expand {
   display: none;
 }
 
+/* ── kill native button chrome ────────────────────────────────────────────
+   Every button is styled via the btn-* shortcuts or its own utilities; this is
+   the safety-net reset so no raw <button> ever falls back to the browser/OS
+   default look (grey fill, bevel border, iOS rounding, the focus outline that
+   clashes with the parchment palette). Utility classes outrank this element
+   selector, so styled buttons keep their own look. Keyboard users still get an
+   accessible focus ring; mouse clicks do not. */
+button {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border-width: 0;
+  border-style: solid;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+button:focus-visible {
+  outline: 2px solid #1e4d3a;
+  outline-offset: 2px;
+}
+
 * {
   box-sizing: border-box;
 }
