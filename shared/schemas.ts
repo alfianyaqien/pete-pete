@@ -86,6 +86,16 @@ export const entrySchema = z.discriminatedUnion('type', [
   sharedOrderEntrySchema,
 ])
 
+// ── settlement payment (a real person-to-person transfer to clear a debt) ──
+export const settlementPaymentSchema = z.object({
+  id: idSchema,
+  from: idSchema, // participant who handed over the cash
+  to: idSchema, // participant who received it
+  amount: z.number().int().positive(),
+  date: isoDate,
+  note: z.string().trim().max(120).optional(),
+})
+
 // ── bill (trip) ─────────────────────────────────────────────────────
 export const billSchema = z.object({
   id: idSchema,
@@ -93,6 +103,9 @@ export const billSchema = z.object({
   createdAt: z.string(), // ISO 8601
   participants: z.array(participantSchema),
   entries: z.array(entrySchema),
+  // real transfers people have made to settle up. Optional: older bills predate
+  // it, so every reader treats a missing list as [] (see shared/settle.ts).
+  payments: z.array(settlementPaymentSchema).optional(),
   lunas: z.boolean(),
 })
 
@@ -148,3 +161,14 @@ export const itemClaimInputSchema = z.object({
   participantId: idSchema,
   claimed: z.boolean(),
 })
+
+/** Record a settlement payment (server assigns id; date defaults to today). */
+export const paymentInputSchema = z
+  .object({
+    from: idSchema,
+    to: idSchema,
+    amount: z.number().int().positive(),
+    date: isoDate.optional(),
+    note: z.string().trim().max(120).optional(),
+  })
+  .refine((v) => v.from !== v.to, { message: 'Payer and receiver must differ' })

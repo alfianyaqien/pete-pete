@@ -9,6 +9,7 @@ import type {
   Sharer,
   ParticipantInput,
   EntryInput,
+  PaymentInput,
   BadgeKey,
 } from './types'
 
@@ -171,6 +172,34 @@ export function removeEntry(bill: Bill, entryId: string): Bill {
  * item goes back to being held by the payer). No-op if the entry/item is missing
  * or the state already matches.
  */
+// ── settlement payments ────────────────────────────────────────────────────
+/**
+ * Record a real transfer someone made to settle up. It is a first-class ledger
+ * record (not a flag on a derived transfer), so it stays correct even as more
+ * expenses are added afterwards: the settle screen always shows what is LEFT
+ * (see outstandingBalances in shared/settle.ts).
+ */
+export function addPayment(bill: Bill, input: PaymentInput): Bill {
+  const has = (id: string) => bill.participants.some((p) => p.id === id)
+  if (!has(input.from) || !has(input.to)) throw new Error('Unknown participant')
+  if (input.from === input.to) throw new Error('Payer and receiver must differ')
+  if (input.amount <= 0) throw new Error('Amount must be positive')
+  const payment = {
+    id: uid(),
+    from: input.from,
+    to: input.to,
+    amount: input.amount,
+    date: input.date ?? todayISO(),
+    ...(input.note ? { note: input.note } : {}),
+  }
+  return { ...bill, payments: [...(bill.payments ?? []), payment] }
+}
+
+/** Void a recorded payment (e.g. entered by mistake). */
+export function removePayment(bill: Bill, paymentId: string): Bill {
+  return { ...bill, payments: (bill.payments ?? []).filter((p) => p.id !== paymentId) }
+}
+
 export function setItemClaim(
   bill: Bill,
   entryId: string,

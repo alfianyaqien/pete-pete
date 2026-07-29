@@ -24,10 +24,15 @@ export async function mutationResult<T>(promise: Promise<T | null>): Promise<T> 
   try {
     result = await promise
   } catch (e) {
-    throw createError({
-      statusCode: 400,
-      statusMessage: e instanceof Error ? e.message : 'Operation failed',
-    })
+    // Domain errors are Error instances; Supabase/Postgrest throws plain objects
+    // that still carry a `message` - surface it so failures aren't opaque.
+    const msg =
+      e instanceof Error
+        ? e.message
+        : (typeof e === 'object' && e && 'message' in e && typeof e.message === 'string'
+            ? e.message
+            : 'Operation failed')
+    throw createError({ statusCode: 400, statusMessage: msg })
   }
   if (result === null) throw createError({ statusCode: 404, statusMessage: 'Bill not found' })
   return result

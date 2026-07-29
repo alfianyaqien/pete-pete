@@ -9,11 +9,13 @@ import type {
   feesSchema,
   sharedOrderEntrySchema,
   entrySchema,
+  settlementPaymentSchema,
   billSchema,
   createBillInputSchema,
   updateBillInputSchema,
   participantInputSchema,
   entryInputSchema,
+  paymentInputSchema,
 } from './schemas'
 
 /** All domain types are inferred from the Zod schemas - one source of truth. */
@@ -26,12 +28,14 @@ export type OrderItem = z.infer<typeof orderItemSchema>
 export type Fees = z.infer<typeof feesSchema>
 export type SharedOrderEntry = z.infer<typeof sharedOrderEntrySchema>
 export type Entry = z.infer<typeof entrySchema>
+export type SettlementPayment = z.infer<typeof settlementPaymentSchema>
 export type Bill = z.infer<typeof billSchema>
 
 export type CreateBillInput = z.infer<typeof createBillInputSchema>
 export type UpdateBillInput = z.infer<typeof updateBillInputSchema>
 export type ParticipantInput = z.infer<typeof participantInputSchema>
 export type EntryInput = z.infer<typeof entryInputSchema>
+export type PaymentInput = z.infer<typeof paymentInputSchema>
 
 // ── derived (computed, never stored) ──────────────────────────────────────
 /** Per-person standing within a bill. */

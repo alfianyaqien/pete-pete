@@ -2,6 +2,7 @@
 import { settleBill, directSettle } from '~~/shared/settle'
 import { billStats, personLedgers } from '~~/shared/stats'
 import { formatRupiah } from '~~/shared/format'
+import type { Bill, Transfer } from '~~/shared/types'
 
 const route = useRoute()
 const id = route.params.id as string
@@ -67,6 +68,56 @@ const frontedBy = computed(() =>
 )
 
 const shareOpen = ref(false)
+
+// ── recorded settlement payments ──────────────────────────────────────────
+const toast = useToast()
+const payments = computed(() => bill.value?.payments ?? [])
+const recordOpen = ref(false)
+const prefill = ref<{ from: string; to: string; amount: number } | null>(null)
+const busy = ref<string | null>(null) // id/key of the row currently mutating
+
+function openRecord() {
+  prefill.value = null
+  recordOpen.value = true
+}
+/** Open the sheet pre-filled from a suggested transfer, for a partial amount. */
+function openPartial(t: Transfer) {
+  prefill.value = { from: t.from, to: t.to, amount: t.amount }
+  recordOpen.value = true
+}
+function onPaymentDone(updated: Bill) {
+  bill.value = updated
+}
+
+/** One tap: record the full suggested transfer as a real payment. */
+async function markPaid(t: Transfer) {
+  const key = `${t.from}:${t.to}:${t.amount}`
+  busy.value = key
+  try {
+    bill.value = await $fetch<Bill>(`/api/bills/${id}/payments`, {
+      method: 'POST',
+      body: { from: t.from, to: t.to, amount: t.amount },
+    })
+    toast.success('Marked paid', `${nameOf(t.from)} to ${nameOf(t.to)}`)
+  } catch (e: any) {
+    toast.error('Couldn’t record payment', e?.data?.statusMessage || 'Please try again')
+  } finally {
+    busy.value = null
+  }
+}
+const transferKey = (t: Transfer) => `${t.from}:${t.to}:${t.amount}`
+
+async function voidPayment(pid: string) {
+  busy.value = pid
+  try {
+    bill.value = await $fetch<Bill>(`/api/bills/${id}/payments/${pid}`, { method: 'DELETE' })
+    toast.success('Payment voided')
+  } catch (e: any) {
+    toast.error('Couldn’t void payment', e?.data?.statusMessage || 'Please try again')
+  } finally {
+    busy.value = null
+  }
+}
 
 /** The settle page carries a lot - split its three sections into tabs. Default
  *  to the transfers ("who settles whom"), the headline result of settling. */
@@ -198,19 +249,76 @@ const tabs = [
           <div
             v-for="(t, i) in shownTransfers"
             :key="i"
-            class="flex items-center gap-2 rounded-card border border-line-light bg-surface-card px-3 py-2.5"
+            class="rounded-card border border-line-light bg-surface-card px-3 py-2.5"
           >
-            <avatar-badge :badge-key="badgeOf(t.from)!" :size="26" />
-            <span class="text-sm font-600">{{ nameOf(t.from) }}</span>
-            <span class="mx-1 flex-1 border-t border-dashed border-line-medium" />
-            <span class="i-tabler-arrow-right text-muted" />
-            <span class="text-sm font-600">{{ nameOf(t.to) }}</span>
-            <avatar-badge :badge-key="badgeOf(t.to)!" :size="26" />
-            <money-text :value="t.amount" class="ml-2 text-sm font-600" />
+            <div class="flex items-center gap-2">
+              <avatar-badge :badge-key="badgeOf(t.from)!" :size="26" />
+              <span class="text-sm font-600">{{ nameOf(t.from) }}</span>
+              <span class="mx-1 flex-1 border-t border-dashed border-line-medium" />
+              <span class="i-tabler-arrow-right text-muted" />
+              <span class="text-sm font-600">{{ nameOf(t.to) }}</span>
+              <avatar-badge :badge-key="badgeOf(t.to)!" :size="26" />
+              <money-text :value="t.amount" class="ml-2 text-sm font-600" />
+            </div>
+            <div class="mt-2 flex justify-end gap-2">
+              <button
+                type="button"
+                class="rounded-control border border-line-medium bg-surface-card px-2.5 py-1 text-[11px] font-600 text-forest border-solid disabled:opacity-60"
+                :disabled="busy === transferKey(t)"
+                @click="openPartial(t)"
+              >
+                Partial
+              </button>
+              <button
+                type="button"
+                class="rounded-control bg-forest px-2.5 py-1 text-[11px] font-600 text-surface-card disabled:opacity-60"
+                :disabled="busy === transferKey(t)"
+                @click="markPaid(t)"
+              >
+                <span v-if="busy === transferKey(t)" class="i-tabler-loader-2 animate-spin" />
+                <template v-else>Mark paid</template>
+              </button>
+            </div>
           </div>
           <p v-if="!shownTransfers.length" class="py-4 text-center text-sm text-muted">
             Everyone is square - nothing to settle.
           </p>
+        </div>
+
+        <button
+          type="button"
+          class="mt-3 flex w-full items-center justify-center gap-2 rounded-card border border-dashed border-line-medium bg-surface-subtle py-2.5 text-sm font-600 text-forest"
+          @click="openRecord"
+        >
+          <span class="i-tabler-plus" /> Record a payment
+        </button>
+
+        <!-- recorded payments history -->
+        <div v-if="payments.length" class="mt-5">
+          <p class="eyebrow mb-2">Recorded payments</p>
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="p in payments"
+              :key="p.id"
+              class="flex items-center gap-2 rounded-card border border-line-light bg-surface-card px-3 py-2"
+            >
+              <avatar-badge :badge-key="badgeOf(p.from)!" :size="22" />
+              <span class="text-xs font-600">{{ nameOf(p.from) }}</span>
+              <span class="i-tabler-arrow-right text-xs text-muted" />
+              <span class="text-xs font-600">{{ nameOf(p.to) }}</span>
+              <avatar-badge :badge-key="badgeOf(p.to)!" :size="22" />
+              <money-text :value="p.amount" class="ml-auto text-xs font-600" />
+              <button
+                type="button"
+                aria-label="Void payment"
+                class="shrink-0 text-muted hover:text-terracotta disabled:opacity-60"
+                :disabled="busy === p.id"
+                @click="voidPayment(p.id)"
+              >
+                <span :class="busy === p.id ? 'i-tabler-loader-2 animate-spin' : 'i-tabler-x'" />
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -277,6 +385,13 @@ const tabs = [
 
     <bottom-nav active="settle" :bill-id="id" />
     <share-export-sheet v-model:open="shareOpen" :bill="bill" :transfers="transfers" />
+    <record-payment-sheet
+      v-model:open="recordOpen"
+      :bill-id="id"
+      :participants="bill.participants"
+      :prefill="prefill"
+      @done="onPaymentDone"
+    />
   </template>
 
   <div v-else class="flex flex-1 items-center justify-center p-8 text-muted">Not found.</div>

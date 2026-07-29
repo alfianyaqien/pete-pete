@@ -1,4 +1,4 @@
-import type { Bill, CreateBillInput, UpdateBillInput, ParticipantInput, EntryInput } from '../../shared/types'
+import type { Bill, CreateBillInput, UpdateBillInput, ParticipantInput, EntryInput, PaymentInput } from '../../shared/types'
 import type { ParticipantPatch } from '../../shared/operations'
 
 /**
@@ -29,6 +29,9 @@ export interface BillRepository {
     participantId: string,
     claimed: boolean,
   ): Promise<Bill | null>
+
+  addPayment(billId: string, input: PaymentInput): Promise<Bill | null>
+  removePayment(billId: string, paymentId: string): Promise<Bill | null>
 }
 
 export interface Repositories {

@@ -26,6 +26,7 @@ export function buildBill(input: CreateBillInput): Bill {
     createdAt: new Date().toISOString(),
     participants,
     entries: [],
+    payments: [],
     lunas: false,
   }
 }

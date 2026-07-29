@@ -4,11 +4,12 @@ import {
   allocateEntry,
   sharedOrderTotal,
   computeBalances,
+  outstandingBalances,
   settle,
   settleBill,
   directSettle,
 } from './settle'
-import { setItemClaim } from './operations'
+import { setItemClaim, addPayment, removePayment } from './operations'
 import type { Bill, Participant, Transfer, Balance } from './types'
 
 const P = (id: string): Participant => ({ id, name: id, badgeKey: 'fox' })
@@ -237,6 +238,82 @@ describe('unclaimed items - held by payer, moved on claim', () => {
 
   it('rejects a claim from someone not on the bill', () => {
     expect(() => setItemClaim(bill, 'e1', 'i2', 'ghost', true)).toThrow()
+  })
+})
+
+describe('settlement payments - recording clears what is outstanding', () => {
+  const base: Bill = {
+    id: 'pay1',
+    title: 'Trip',
+    createdAt: new Date().toISOString(),
+    lunas: false,
+    participants: ['A', 'B', 'C', 'D'].map(P),
+    entries: [
+      {
+        id: 'e1',
+        type: 'simple',
+        title: 'Lodging',
+        date: '2026-07-24',
+        amount: 400_000,
+        payers: [{ participantId: 'A', amount: 400_000 }],
+        shareMethod: 'equally',
+        sharers: ['A', 'B', 'C', 'D'].map((id) => ({ participantId: id, share: 100_000 })),
+      },
+    ],
+  }
+  const bal = (b: Bill) =>
+    Object.fromEntries(outstandingBalances(b).map((x) => [x.participantId, x.balance]))
+
+  it('reduces the outstanding balance and drops the settled transfer', () => {
+    const paid = addPayment(base, { from: 'B', to: 'A', amount: 100_000 })
+    const out = bal(paid)
+    expect(out.A).toBe(200_000) // A was owed 300k, B has now paid 100k
+    expect(out.B).toBe(0)
+    const { transfers } = settleBill(paid)
+    expect(transfers).toHaveLength(2) // only C and D still owe A
+    expect(transfers.every((t) => t.to === 'A')).toBe(true)
+  })
+
+  it('a partial payment leaves a smaller remaining balance', () => {
+    const paid = addPayment(base, { from: 'B', to: 'A', amount: 40_000 })
+    expect(bal(paid).B).toBe(-60_000) // still owes 60k
+  })
+
+  it('voiding a payment restores the outstanding balance', () => {
+    const paid = addPayment(base, { from: 'B', to: 'A', amount: 100_000 })
+    const voided = removePayment(paid, paid.payments![0]!.id)
+    expect(voided.payments).toHaveLength(0)
+    expect(settleBill(voided).transfers).toHaveLength(3)
+  })
+
+  it('rejects self-payments and unknown participants', () => {
+    expect(() => addPayment(base, { from: 'A', to: 'A', amount: 1000 })).toThrow()
+    expect(() => addPayment(base, { from: 'A', to: 'ghost', amount: 1000 })).toThrow()
+  })
+
+  it('direct mode nets a recorded payment against the real debt', () => {
+    const bill: Bill = {
+      ...base,
+      participants: ['A', 'B'].map(P),
+      entries: [
+        {
+          id: 'd1',
+          type: 'simple',
+          title: 'Dinner',
+          date: '2026-07-24',
+          amount: 100_000,
+          payers: [{ participantId: 'A', amount: 100_000 }],
+          shareMethod: 'equally',
+          sharers: [
+            { participantId: 'A', share: 50_000 },
+            { participantId: 'B', share: 50_000 },
+          ],
+        },
+      ],
+    }
+    expect(directSettle(bill)).toEqual([{ from: 'B', to: 'A', amount: 50_000 }])
+    const paid = addPayment(bill, { from: 'B', to: 'A', amount: 50_000 })
+    expect(directSettle(paid)).toEqual([]) // square, no direct transfer left
   })
 })
 

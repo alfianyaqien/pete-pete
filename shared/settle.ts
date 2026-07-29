@@ -135,6 +135,27 @@ export function computeBalances(bill: Bill): Balance[] {
   }))
 }
 
+/**
+ * Balances with recorded settlement payments applied - i.e. what is STILL
+ * outstanding. A payment {from, to} moves the payer's balance up toward zero and
+ * the receiver's down toward zero. `spent`/`paid` stay expense-only (they drive
+ * the per-person breakdown); only `balance` reflects what is left to settle.
+ * With no payments this equals `computeBalances`.
+ */
+export function outstandingBalances(bill: Bill): Balance[] {
+  const base = computeBalances(bill)
+  const payments = bill.payments ?? []
+  if (!payments.length) return base
+  const by = new Map(base.map((b) => [b.participantId, { ...b }]))
+  for (const p of payments) {
+    const from = by.get(p.from)
+    const to = by.get(p.to)
+    if (from) from.balance += p.amount
+    if (to) to.balance -= p.amount
+  }
+  return base.map((b) => by.get(b.participantId)!)
+}
+
 // ── minimal settlement (greedy min cash flow) ─────────────────────────────
 /**
  * Reduce balances to a small, clean set of transfers that clears everyone.
@@ -177,9 +198,9 @@ export function settle(balances: Balance[]): Transfer[] {
   return transfers
 }
 
-/** Convenience: balances + transfers for a bill in one call. */
+/** Convenience: outstanding balances + the transfers that still clear them. */
 export function settleBill(bill: Bill): { balances: Balance[]; transfers: Transfer[] } {
-  const balances = computeBalances(bill)
+  const balances = outstandingBalances(bill)
   return { balances, transfers: settle(balances) }
 }
 
@@ -222,6 +243,10 @@ export function directSettle(bill: Bill): Transfer[] {
       creditors.forEach((c, i) => add(d.id, c.id, parts[i]))
     }
   }
+
+  // a recorded payment from A to B pays down A's debt to B: add the reverse edge
+  // so netting cancels it out (over-payment flips the pair the other way).
+  for (const p of bill.payments ?? []) add(p.to, p.from, p.amount)
 
   // net each pair: only the larger direction survives
   const out: Transfer[] = []

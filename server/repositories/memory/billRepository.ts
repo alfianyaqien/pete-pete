@@ -5,6 +5,7 @@ import type {
   UpdateBillInput,
   ParticipantInput,
   EntryInput,
+  PaymentInput,
 } from '../../../shared/types'
 import {
   addParticipant,
@@ -14,6 +15,8 @@ import {
   updateEntry,
   removeEntry,
   setItemClaim,
+  addPayment,
+  removePayment,
   type ParticipantPatch,
 } from '../../../shared/operations'
 import { buildBill } from '../../utils/buildBill'
@@ -73,5 +76,11 @@ export class MemoryBillRepository implements BillRepository {
   }
   async claimItem(id: string, eid: string, itemId: string, pid: string, claimed: boolean) {
     return this.mutate(id, (b) => setItemClaim(b, eid, itemId, pid, claimed))
+  }
+  async addPayment(id: string, input: PaymentInput) {
+    return this.mutate(id, (b) => addPayment(b, input))
+  }
+  async removePayment(id: string, paymentId: string) {
+    return this.mutate(id, (b) => removePayment(b, paymentId))
   }
 }

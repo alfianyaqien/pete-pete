@@ -6,6 +6,7 @@ import type {
   UpdateBillInput,
   ParticipantInput,
   EntryInput,
+  PaymentInput,
 } from '../../../shared/types'
 import { billSchema } from '../../../shared/schemas'
 import {
@@ -16,6 +17,8 @@ import {
   updateEntry,
   removeEntry,
   setItemClaim,
+  addPayment,
+  removePayment,
   type ParticipantPatch,
 } from '../../../shared/operations'
 import { buildBill } from '../../utils/buildBill'
@@ -30,6 +33,7 @@ function mapRow(row: Record<string, unknown>): Bill {
     createdAt: row.created_at,
     participants: row.participants ?? [],
     entries: row.entries ?? [],
+    payments: row.payments ?? [],
     lunas: row.lunas ?? false,
   })
 }
@@ -90,6 +94,7 @@ export class SupabaseBillRepository implements BillRepository {
           lunas: next.lunas,
           participants: next.participants,
           entries: next.entries,
+          payments: next.payments,
           version: version + 1,
         })
         .eq('id', id)
@@ -124,6 +129,12 @@ export class SupabaseBillRepository implements BillRepository {
   claimItem(id: string, eid: string, itemId: string, pid: string, claimed: boolean) {
     return this.mutate(id, (b) => setItemClaim(b, eid, itemId, pid, claimed))
   }
+  addPayment(id: string, input: PaymentInput) {
+    return this.mutate(id, (b) => addPayment(b, input))
+  }
+  removePayment(id: string, paymentId: string) {
+    return this.mutate(id, (b) => removePayment(b, paymentId))
+  }
 }
 
 function toRow(bill: Bill) {
@@ -133,6 +144,7 @@ function toRow(bill: Bill) {
     created_at: bill.createdAt,
     participants: bill.participants,
     entries: bill.entries,
+    payments: bill.payments,
     lunas: bill.lunas,
   }
 }
