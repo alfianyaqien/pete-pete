@@ -40,5 +40,14 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: 'vercel',
+    vercel: {
+      config: {
+        // Keep the Supabase free-tier project awake: Vercel Cron GETs /api/health
+        // (which does a tiny Supabase read) every 3rd day at ~06:00 UTC. That is
+        // well under Supabase's ~7-day inactivity pause and under Vercel Hobby's
+        // once-per-day cron cap. This merges into .vercel/output/config.json.
+        crons: [{ path: '/api/health', schedule: '0 6 */3 * *' }],
+      },
+    },
   },
 })
