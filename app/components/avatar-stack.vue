@@ -13,7 +13,7 @@ const props = withDefaults(
 
 const shown = computed(() => props.participants.slice(0, props.max))
 const overflow = computed(() => Math.max(0, props.participants.length - props.max))
-/** Names hidden behind the "+N" chip — surfaced as its tooltip. */
+/** Names hidden behind the "+N" chip - surfaced as its tooltip. */
 const overflowNames = computed(() =>
   props.participants.slice(props.max).map((p) => p.name).join(', '),
 )
@@ -22,7 +22,9 @@ const overlapPx = computed(() => -Math.round(props.size * 0.3))
 </script>
 
 <template>
-  <div class="flex items-center">
+  <!-- `isolate` keeps the per-badge z-index (used only for overlap order) inside
+       this stack, so it can never paint over layout chrome like the bottom nav. -->
+  <div class="flex items-center isolate">
     <div
       v-for="(p, i) in shown"
       :key="p.id"
