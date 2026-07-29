@@ -19,7 +19,7 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     p,
     new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error('Export timed out — please try again')), ms),
+      setTimeout(() => reject(new Error('Export timed out - please try again')), ms),
     ),
   ])
 }
@@ -35,7 +35,7 @@ async function fontsReady() {
   }
 }
 
-/** Rasterise a DOM node to a PNG Blob — pixel-for-pixel what's on screen. */
+/** Rasterise a DOM node to a PNG Blob - pixel-for-pixel what's on screen. */
 export async function elementToPngBlob(node: HTMLElement, bg = '#f4ead7'): Promise<Blob> {
   await fontsReady()
   const { domToBlob } = await import('modern-screenshot')
@@ -50,7 +50,7 @@ export async function elementToPng(node: HTMLElement, filename: string, bg = '#f
 /**
  * Rasterise the summary DOM into a multi-page PDF. Rather than slicing the tall
  * image at fixed A4 heights (which cuts through rows), it reads the positions of
- * elements marked `[data-pdf-block]` and only ever cuts BETWEEN them — so no row,
+ * elements marked `[data-pdf-block]` and only ever cuts BETWEEN them - so no row,
  * heading or person block is ever split across a page boundary. A `[data-pdf-
  * heading]` is kept with the block that follows it. The PDF therefore matches the
  * preview and breaks cleanly.
@@ -66,7 +66,7 @@ export async function elementToPdf(node: HTMLElement, filename: string) {
   const pageWpt = doc.internal.pageSize.getWidth()
   const pageHpt = doc.internal.pageSize.getHeight()
 
-  // uniform page margin — content is inset on every side of every page (so
+  // uniform page margin - content is inset on every side of every page (so
   // continuation pages get a top margin too, not just page 1)
   const M = 32
   const contentWpt = pageWpt - 2 * M

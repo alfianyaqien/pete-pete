@@ -3,7 +3,7 @@ import { useField } from 'vee-validate'
 import { formatDateMedium } from '~~/shared/format'
 
 /**
- * CoreDateInput — a field-styled trigger that opens core-calendar in an
+ * CoreDateInput - a field-styled trigger that opens core-calendar in an
  * anchored floating panel (no native date input). Same dual mode as CoreInput:
  * `name` binds to the surrounding useForm(), otherwise v-model. Value is a
  * 'YYYY-MM-DD' string.

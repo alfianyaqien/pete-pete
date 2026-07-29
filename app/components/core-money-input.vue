@@ -3,7 +3,7 @@ import { useField } from 'vee-validate'
 import { formatAmount } from '~~/shared/format'
 
 /**
- * CoreMoneyInput — a text input that DISPLAYS grouped digits ("1000" → "1.000",
+ * CoreMoneyInput - a text input that DISPLAYS grouped digits ("1000" → "1.000",
  * Indonesian thousands) while the bound value stays a plain integer number.
  * Same dual mode as CoreInput: `name` binds to the surrounding useForm(),
  * otherwise v-model. The form always extracts a number, never a string.

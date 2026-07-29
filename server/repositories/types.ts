@@ -8,7 +8,7 @@ import type { ParticipantPatch } from '../../shared/operations'
  */
 export interface BillRepository {
   // No list()/"all bills" method by design: the app has no login, so bills are
-  // addressed only by their share-link id — there is no global collection to
+  // addressed only by their share-link id - there is no global collection to
   // enumerate (that would leak every device's bills to anyone).
   create(input: CreateBillInput): Promise<Bill>
   get(id: string): Promise<Bill | null>

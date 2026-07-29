@@ -6,6 +6,7 @@ import {
   computeBalances,
   settle,
   settleBill,
+  directSettle,
 } from './settle'
 import { setItemClaim } from './operations'
 import type { Bill, Participant, Transfer, Balance } from './types'
@@ -42,7 +43,7 @@ describe('splitProportional', () => {
   })
 })
 
-describe('simple entry — equal split', () => {
+describe('simple entry - equal split', () => {
   const bill: Bill = {
     id: 'b1',
     title: 'Argopuro',
@@ -83,7 +84,7 @@ describe('simple entry — equal split', () => {
   })
 })
 
-describe('shared order — items + proportional fees', () => {
+describe('shared order - items + proportional fees', () => {
   // a orders 70k of items, b orders 30k; net fees +10k → total 110k
   const entry = {
     id: 'e2',
@@ -113,7 +114,7 @@ describe('shared order — items + proportional fees', () => {
   })
 })
 
-describe('multi-entry bill — settlement invariants', () => {
+describe('multi-entry bill - settlement invariants', () => {
   const bill: Bill = {
     id: 'b2',
     title: 'Villa Puncak',
@@ -160,7 +161,7 @@ describe('multi-entry bill — settlement invariants', () => {
   })
 })
 
-describe('settle — opposite-sort greedy + determinism', () => {
+describe('settle - opposite-sort greedy + determinism', () => {
   const B = (participantId: string, balance: number): Balance => ({
     participantId,
     spent: 0,
@@ -178,13 +179,13 @@ describe('settle — opposite-sort greedy + determinism', () => {
     assertClears(balances, transfers)
   })
 
-  it('is deterministic — same balances, any input order → identical transfers', () => {
+  it('is deterministic - same balances, any input order → identical transfers', () => {
     const shuffled = [B('D2', -40), B('C2', 30), B('D1', -90), B('C1', 100)]
     expect(settle(shuffled)).toEqual(settle(balances))
   })
 })
 
-describe('unclaimed items — held by payer, moved on claim', () => {
+describe('unclaimed items - held by payer, moved on claim', () => {
   const bill: Bill = {
     id: 'u1',
     title: 'Warung',
@@ -236,5 +237,83 @@ describe('unclaimed items — held by payer, moved on claim', () => {
 
   it('rejects a claim from someone not on the bill', () => {
     expect(() => setItemClaim(bill, 'e1', 'i2', 'ghost', true)).toThrow()
+  })
+})
+
+describe('directSettle - who actually owes whom (no cross transfer)', () => {
+  // A pays a dinner shared with B; B pays gas shared with C. B is the middle.
+  const bill: Bill = {
+    id: 'd1',
+    title: 'Chain',
+    createdAt: new Date().toISOString(),
+    lunas: false,
+    participants: ['A', 'B', 'C'].map(P),
+    entries: [
+      {
+        id: 'e1',
+        type: 'simple',
+        title: 'Dinner',
+        date: '2026-07-24',
+        amount: 100_000,
+        payers: [{ participantId: 'A', amount: 100_000 }],
+        shareMethod: 'equally',
+        sharers: [
+          { participantId: 'A', share: 50_000 },
+          { participantId: 'B', share: 50_000 },
+        ],
+      },
+      {
+        id: 'e2',
+        type: 'simple',
+        title: 'Gas',
+        date: '2026-07-24',
+        amount: 100_000,
+        payers: [{ participantId: 'B', amount: 100_000 }],
+        shareMethod: 'equally',
+        sharers: [
+          { participantId: 'B', share: 50_000 },
+          { participantId: 'C', share: 50_000 },
+        ],
+      },
+    ],
+  }
+
+  it('efficient settlement routes through the middle (C pays A)', () => {
+    const transfers = settle(computeBalances(bill))
+    expect(transfers).toEqual([{ from: 'C', to: 'A', amount: 50_000 }])
+  })
+
+  it('direct settlement keeps each debt with its real expense', () => {
+    // B owes A for dinner; C owes B for gas - no C→A hop
+    expect(directSettle(bill)).toEqual([
+      { from: 'B', to: 'A', amount: 50_000 },
+      { from: 'C', to: 'B', amount: 50_000 },
+    ])
+  })
+
+  it('nets a mutual pair down to the difference', () => {
+    // A paid dinner (B owes A 50k); add a snack B paid, shared with A (A owes B 20k)
+    const withSnack: Bill = {
+      ...bill,
+      participants: ['A', 'B'].map(P),
+      entries: [
+        bill.entries[0]!,
+        {
+          id: 'e3',
+          type: 'simple',
+          title: 'Snack',
+          date: '2026-07-24',
+          amount: 40_000,
+          payers: [{ participantId: 'B', amount: 40_000 }],
+          shareMethod: 'equally',
+          sharers: [
+            { participantId: 'A', share: 20_000 },
+            { participantId: 'B', share: 20_000 },
+          ],
+        },
+      ],
+    }
+    // B→A 50k minus A→B 20k = B→A 30k, one line for the pair
+    expect(directSettle(withSnack)).toEqual([{ from: 'B', to: 'A', amount: 30_000 }])
   })
 })

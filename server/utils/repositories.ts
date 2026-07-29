@@ -9,7 +9,7 @@ let memoryRepos: Repositories | null = null
 /**
  * THE SINGLE DB SWAP POINT. Routes call `useRepositories(event)` and depend only
  * on the Repositories interface. To change databases, change what this function
- * returns — nothing in server/api/** or app/** needs to be touched.
+ * returns - nothing in server/api/** or app/** needs to be touched.
  *
  * Today: Supabase when credentials are configured, otherwise an in-memory store
  * (dev fallback, no credentials required).

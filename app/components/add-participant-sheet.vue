@@ -8,7 +8,7 @@ const open = defineModel<boolean>('open', { default: false })
 const props = defineProps<{ billId: string; taken: BadgeKey[] }>()
 const emit = defineEmits<{ done: [Bill] }>()
 
-// Form state is owned by VeeValidate + Zod — no local refs for field values.
+// Form state is owned by VeeValidate + Zod - no local refs for field values.
 const { handleSubmit, values, setFieldValue, resetForm, isSubmitting } = useForm({
   validationSchema: toTypedSchema(participantInputSchema),
   initialValues: { name: '', badgeKey: BADGE_KEYS[0] as BadgeKey },

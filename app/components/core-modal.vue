@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * CoreModal — bottom-sheet dialog. v-model:open, dimmed scrim, grab handle,
+ * CoreModal - bottom-sheet dialog. v-model:open, dimmed scrim, grab handle,
  * optional title or #header slot. Used for every sheet in the app.
  */
 const open = defineModel<boolean>('open', { default: false })

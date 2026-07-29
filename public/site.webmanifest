@@ -1,7 +1,7 @@
 {
   "name": "PetePete",
   "short_name": "PetePete",
-  "description": "Split bills with friends on the road. No login — just share the link.",
+  "description": "Split bills with friends on the road. No login - just share the link.",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#1E4D3A",

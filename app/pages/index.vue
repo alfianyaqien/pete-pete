@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Minimal landing. The app is link-based with no login, so there is no bill
-// list here — existing bills are reached by their share link; this screen only
+// list here - existing bills are reached by their share link; this screen only
 // starts a new one.
 </script>
 

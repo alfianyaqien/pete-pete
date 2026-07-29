@@ -119,7 +119,7 @@ async function save() {
             <span class="num shrink-0 font-600">{{ formatRupiah(t.amount) }}</span>
           </div>
           <p v-if="!settlement.transfers.length" data-pdf-block class="py-1.5 text-sm text-muted">
-            Everyone is square — nothing to settle.
+            Everyone is square - nothing to settle.
           </p>
         </div>
 

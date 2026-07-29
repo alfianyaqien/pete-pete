@@ -3,7 +3,7 @@ import type { H3Event } from 'h3'
 
 /**
  * Server-only Supabase client built from runtimeConfig (service-role key).
- * Never imported by app/ code — the browser never sees these credentials.
+ * Never imported by app/ code - the browser never sees these credentials.
  */
 let client: SupabaseClient | null = null
 

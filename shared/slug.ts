@@ -1,6 +1,6 @@
 /**
  * Short, URL-friendly share-link ids (e.g. "kR7vTq2"). A bill is addressed only
- * by its share link, so its primary id *is* this slug — no separate mapping
+ * by its share link, so its primary id *is* this slug - no separate mapping
  * table needed. 7 chars from a 56-symbol alphabet ≈ 1.7e12 combinations, so
  * collisions are astronomically unlikely; the repository retries on the rare
  * clash anyway.
@@ -11,7 +11,7 @@
  */
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz'
 const N = ALPHABET.length // 56
-const CEIL = 256 - (256 % N) // 224 — reject bytes at/above this to stay unbiased
+const CEIL = 256 - (256 % N) // 224 - reject bytes at/above this to stay unbiased
 
 export function generateSlug(length = 7): string {
   let out = ''

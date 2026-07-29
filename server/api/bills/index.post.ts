@@ -1,6 +1,6 @@
 import { createBillInputSchema } from '../../../shared/schemas'
 
-/** POST /api/bills — create a trip. */
+/** POST /api/bills - create a trip. */
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const parsed = createBillInputSchema.safeParse(body)
@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Names must be unique within a bill (case-insensitive) — handoff requirement.
+  // Names must be unique within a bill (case-insensitive) - handoff requirement.
   const names = (parsed.data.participants ?? []).map((p) => p.name.trim().toLowerCase())
   if (new Set(names).size !== names.length) {
     throw createError({ statusCode: 400, statusMessage: 'Participant names must be unique' })

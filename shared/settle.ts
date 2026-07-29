@@ -59,7 +59,7 @@ export function sharedOrderTotal(entry: Extract<Entry, { type: 'shared_order' }>
 /**
  * Who a shared-order item is charged to. Normally its `orderedBy`, but an
  * UNCLAIMED item (empty `orderedBy`) is provisionally held by whoever fronted
- * the cash — so its cost is covered by the payer(s) and the ledger stays
+ * the cash - so its cost is covered by the payer(s) and the ledger stays
  * zero-sum until someone claims it. Since `payerIds` is always non-empty, every
  * rupiah of every item is allocated to a real person. Claiming an item just
  * moves that cost from the payer(s) to the claimer(s).
@@ -144,7 +144,7 @@ export function computeBalances(bill: Bill): Balance[] {
  * of being shaved into tiny "sliver" transfers (e.g. Rp 6.990), while the
  * leftover accumulates on a large creditor that has room to absorb it. This
  * costs the same as a plain greedy and yields the same (minimum, n−1 when no
- * zero-sum subgroup exists) transfer count — it only makes the smallest transfer
+ * zero-sum subgroup exists) transfer count - it only makes the smallest transfer
  * larger. Amounts are integer rupiah, so this is exact.
  *
  * Ties are broken by participantId, so the output is fully deterministic: the
@@ -181,4 +181,61 @@ export function settle(balances: Balance[]): Transfer[] {
 export function settleBill(bill: Bill): { balances: Balance[]; transfers: Transfer[] } {
   const balances = computeBalances(bill)
   return { balances, transfers: settle(balances) }
+}
+
+// ── direct settlement ("who actually owes whom") ──────────────────────────
+/**
+ * Direct settlement: unlike `settle`, this never routes money through an
+ * uninvolved third party. For each expense, whoever owes their share pays it to
+ * that expense's actual payer(s), split in proportion to what each fronted. Those
+ * per-expense obligations are summed across the bill and netted per pair (if two
+ * people owe each other, only the difference remains). The result usually has
+ * MORE transfers than `settle`, but every transfer reflects a real shared
+ * expense. Deterministic - edges are keyed by id and the output is id-sorted.
+ */
+export function directSettle(bill: Bill): Transfer[] {
+  const SEP = ' '
+  const edges = new Map<string, number>()
+  const add = (from: string, to: string, amt: number) => {
+    if (amt <= 0 || from === to) return
+    const key = from + SEP + to
+    edges.set(key, (edges.get(key) ?? 0) + amt)
+  }
+
+  for (const entry of bill.entries) {
+    const { shares, payments } = allocateEntry(entry)
+    const ids = new Set([...Object.keys(shares), ...Object.keys(payments)])
+    const creditors: { id: string; amt: number }[] = []
+    const debtors: { id: string; amt: number }[] = []
+    for (const id of ids) {
+      const net = (payments[id] ?? 0) - (shares[id] ?? 0)
+      if (net > 0) creditors.push({ id, amt: net })
+      else if (net < 0) debtors.push({ id, amt: -net })
+    }
+    if (!creditors.length || !debtors.length) continue
+    creditors.sort((a, b) => a.id.localeCompare(b.id))
+    debtors.sort((a, b) => a.id.localeCompare(b.id))
+    // each debtor pays the entry's payers, split by how much each fronted
+    const creditAmts = creditors.map((c) => c.amt)
+    for (const d of debtors) {
+      const parts = splitProportional(d.amt, creditAmts)
+      creditors.forEach((c, i) => add(d.id, c.id, parts[i]))
+    }
+  }
+
+  // net each pair: only the larger direction survives
+  const out: Transfer[] = []
+  const done = new Set<string>()
+  for (const [key, amt] of edges) {
+    if (done.has(key)) continue
+    const [from, to] = key.split(SEP) as [string, string]
+    const revKey = to + SEP + from
+    done.add(key)
+    done.add(revKey)
+    const rev = edges.get(revKey) ?? 0
+    if (amt > rev) out.push({ from, to, amount: amt - rev })
+    else if (rev > amt) out.push({ from: to, to: from, amount: rev - amt })
+  }
+  out.sort((a, b) => a.from.localeCompare(b.from) || a.to.localeCompare(b.to))
+  return out
 }

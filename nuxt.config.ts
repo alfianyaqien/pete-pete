@@ -28,13 +28,13 @@ export default defineNuxtConfig({
     componentNames: { Form: 'VeeForm', Field: 'VeeField' },
   },
 
-  // Server-only secrets. The frontend never reads these — only Nitro routes do
+  // Server-only secrets. The frontend never reads these - only Nitro routes do
   // (via useRuntimeConfig().supabaseUrl / supabaseServiceKey). Overridden in
   // production by NUXT_SUPABASE_URL / NUXT_SUPABASE_SERVICE_KEY env vars.
   runtimeConfig: {
     supabaseUrl: '',
     supabaseServiceKey: '',
-    // nothing under `public` — no Supabase keys reach the client
+    // nothing under `public` - no Supabase keys reach the client
     public: {},
   },
 

@@ -3,7 +3,7 @@ import type { BadgeKey } from './types'
 
 /**
  * Auto-assign a travel badge to a new participant, preferring an unused one.
- * With more than 30 souls the keys repeat — then we pick the least-used badge.
+ * With more than 30 souls the keys repeat - then we pick the least-used badge.
  */
 export function nextBadge(taken: readonly BadgeKey[]): BadgeKey {
   const free = BADGE_KEYS.find((k) => !taken.includes(k))

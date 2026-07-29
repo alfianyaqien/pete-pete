@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * CoreButton — the single reusable button. Renders a <NuxtLink> when `to` is
+ * CoreButton - the single reusable button. Renders a <NuxtLink> when `to` is
  * given, otherwise a <button>. Styling comes from the btn-* design-token
  * shortcuts so every button in the app is consistent.
  */

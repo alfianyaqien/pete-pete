@@ -4,7 +4,7 @@ import { allocateEntry, itemsSubtotal } from '~~/shared/settle'
 import { formatRupiah, formatDateMedium } from '~~/shared/format'
 
 /**
- * Read-only summary of one expense — opened from the entry list so details are
+ * Read-only summary of one expense - opened from the entry list so details are
  * visible without entering the edit form. Shows who paid, the per-person split,
  * and (for a Bill) the itemised order with who ordered what.
  */

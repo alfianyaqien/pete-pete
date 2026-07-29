@@ -60,12 +60,12 @@ describe('personLedgers', () => {
     expect(paid).toBe(billTotal(bill))
   })
 
-  it('itemises bill lines as "Bill — Item" and adds a fees line', () => {
+  it('itemises bill lines as "Bill - Item" and adds a fees line', () => {
     const ana = byId['a']!
     const labels = ana.owed.map((o) => o.label)
-    expect(labels).toContain('Warung — Nasi Goreng')
-    expect(labels).toContain('Warung — Es Teh')
-    expect(labels.some((l) => l.startsWith('Warung — fees'))).toBe(true)
+    expect(labels).toContain('Warung - Nasi Goreng')
+    expect(labels).toContain('Warung - Es Teh')
+    expect(labels.some((l) => l.startsWith('Warung - fees'))).toBe(true)
     // Ana paid the Bensin, so it shows under paid, not owed twice
     expect(ana.paid.map((p) => p.title)).toContain('Bensin')
   })
@@ -73,12 +73,12 @@ describe('personLedgers', () => {
   it('excludes people from items they did not order', () => {
     // Cy only ordered Es Teh, never Nasi Goreng
     const cy = byId['c']!
-    expect(cy.owed.map((o) => o.label)).not.toContain('Warung — Nasi Goreng')
-    expect(cy.owed.map((o) => o.label)).toContain('Warung — Es Teh')
+    expect(cy.owed.map((o) => o.label)).not.toContain('Warung - Nasi Goreng')
+    expect(cy.owed.map((o) => o.label)).toContain('Warung - Es Teh')
   })
 })
 
-describe('personLedgers — unclaimed items', () => {
+describe('personLedgers - unclaimed items', () => {
   const withUnclaimed: Bill = {
     id: 'b2',
     title: 'Trip',
@@ -111,7 +111,7 @@ describe('personLedgers — unclaimed items', () => {
 
     const ana = ledgers.find((l) => l.participantId === 'a')!
     // Ana fronted the whole bill and holds the unclaimed item as an owed line
-    expect(ana.owed.map((o) => o.label)).toContain('Warung — Mystery (unclaimed)')
+    expect(ana.owed.map((o) => o.label)).toContain('Warung - Mystery (unclaimed)')
   })
 })
 

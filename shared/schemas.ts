@@ -113,7 +113,7 @@ export const participantPatchSchema = z
 
 export const createBillInputSchema = z.object({
   title: entryTitle,
-  // NOTE: no .default() here — @vee-validate/zod's getDefaults reads a Zod v3
+  // NOTE: no .default() here - @vee-validate/zod's getDefaults reads a Zod v3
   // internal that breaks on Zod v4. Callers pass [] / forms supply initialValues.
   participants: z.array(participantInputSchema).optional(),
 })
@@ -128,7 +128,7 @@ export const updateBillInputSchema = z
   })
 
 /** Entry as submitted by a form: no entry/item ids yet, and `date` is optional
- *  (the server defaults it to today) — required once stored. */
+ *  (the server defaults it to today) - required once stored. */
 export const simpleEntryInputSchema = simpleEntrySchema
   .omit({ id: true })
   .extend({ date: isoDate.optional() })

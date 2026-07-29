@@ -18,7 +18,7 @@ useSeoMeta({
   ogTitle: () => (bill.value ? `${bill.value.title} · PetePete` : 'PetePete'),
   ogDescription: () =>
     bill.value
-      ? `Trip ledger — ${stats.value?.souls ?? 0} souls · total ${formatRupiah(stats.value?.total ?? 0)}.`
+      ? `Trip ledger - ${stats.value?.souls ?? 0} souls · total ${formatRupiah(stats.value?.total ?? 0)}.`
       : '',
 })
 
@@ -56,7 +56,7 @@ async function claimFromDetail({ itemId, claimed }: { itemId: string; claimed: b
   const entry = detailEntry.value
   if (!entry) return
   if (!me.value) {
-    claimError.value = 'Pick who you are first — tap “Who are you?” above.'
+    claimError.value = 'Pick who you are first - tap “Who are you?” above.'
     return
   }
   claimError.value = ''
@@ -77,7 +77,7 @@ async function claimFromDetail({ itemId, claimed }: { itemId: string; claimed: b
   }
 }
 
-// The DELETE route returns the updated bill, so patch it in directly — no refetch.
+// The DELETE route returns the updated bill, so patch it in directly - no refetch.
 const deleting = ref(false)
 const deleteError = ref('')
 async function deleteFromDetail() {

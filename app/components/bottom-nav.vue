@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Bill-scoped floating nav. The app has no login, so there is no global
- * navigation — this only appears inside a bill and only links to that bill's
+ * navigation - this only appears inside a bill and only links to that bill's
  * own screens (Entries / Souls / Settle).
  */
 const props = defineProps<{

@@ -6,7 +6,7 @@ import {
 } from 'unocss'
 
 /**
- * PetePete design tokens — sourced verbatim from the design handoff
+ * PetePete design tokens - sourced verbatim from the design handoff
  * (design_handoff_petepete/README.md "Design Tokens").
  * The palette/radii/shadows live here as the UnoCSS `theme`; recurring
  * component recipes live in `shortcuts`.
@@ -91,7 +91,7 @@ export default defineConfig({
     ['tnum', { 'font-feature-settings': "'tnum'", 'font-variant-numeric': 'tabular-nums' }],
   ],
   shortcuts: {
-    // centered content column — width-limited on desktop but transparent, so it
+    // centered content column - width-limited on desktop but transparent, so it
     // sits seamlessly on the one continuous app background (no boxed gutters).
     // Headers/footers span full width; only their inner content uses this.
     'app-col': 'mx-auto w-full max-w-[620px]',
@@ -118,7 +118,7 @@ export default defineConfig({
     'chip-warn': 'chip-base bg-warn-fill border border-warn-border text-warn-text',
     'chip-neg': 'chip-base bg-neg-fill border border-neg-border text-neg-text',
 
-    // form fields — replaces all native browser chrome. Each variant fully
+    // form fields - replaces all native browser chrome. Each variant fully
     // specifies its own border/background so combining classes never leaves
     // two shortcuts fighting over the same property.
     'field-shared':

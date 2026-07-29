@@ -22,7 +22,7 @@ export function settlementRecap(bill: Bill, transfers: Transfer[]): string {
   const name = (id: string) => bill.participants.find((p) => p.id === id)?.name ?? '?'
   const lines = transfers.map((t) => `• ${name(t.from)} → ${name(t.to)}: ${formatRupiah(t.amount)}`)
   return [
-    `🏔️ ${bill.title} — settle up`,
+    `🏔️ ${bill.title} - settle up`,
     `${transfers.length} transfer${transfers.length === 1 ? '' : 's'} clears everyone:`,
     ...lines,
     '',
@@ -41,7 +41,7 @@ export function shareToWhatsApp(text: string) {
  * the Web Share API with a file attachment. Where that isn't supported (most
  * desktop browsers) it falls back to a plain download. Returns what happened so
  * the caller can show the right toast. A user-cancelled share is treated as
- * done — we don't then dump a download on them.
+ * done - we don't then dump a download on them.
  */
 export async function shareImageFile(
   blob: Blob,

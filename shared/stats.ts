@@ -13,7 +13,7 @@ export function entryTotalOf(entry: Entry): number {
 export function payersLabel(entry: Entry, participants: Participant[]): string {
   const name = (id: string) => participants.find((p) => p.id === id)?.name ?? '?'
   const p = entry.payers
-  if (p.length === 0) return '—'
+  if (p.length === 0) return '-'
   if (p.length === 1) return name(p[0]!.participantId)
   if (p.length === 2) return `${name(p[0]!.participantId)} & ${name(p[1]!.participantId)}`
   return `${name(p[0]!.participantId)}, ${name(p[1]!.participantId)} +${p.length - 2}`
@@ -43,7 +43,7 @@ export function groupEntriesByDate(entries: Entry[]): EntryGroup[] {
     }))
 }
 
-/** Sum of every entry's total — the bill's "total tally". */
+/** Sum of every entry's total - the bill's "total tally". */
 export function billTotal(bill: Bill): number {
   return bill.entries.reduce((sum, e) => sum + entryTotalOf(e), 0)
 }
@@ -77,7 +77,7 @@ export interface PaidLine {
   amount: number
 }
 export interface OwedLine {
-  /** For a simple entry: the entry title. For a bill: "Bill — Item". */
+  /** For a simple entry: the entry title. For a bill: "Bill - Item". */
   label: string
   amount: number // negative for a discount line
 }
@@ -95,7 +95,7 @@ export interface PersonLedger {
 /**
  * Break every entry down per participant: the expenses they fronted (paid) and
  * the line-by-line cost they owe. For a bill (shared order) each ordered item
- * becomes its own owed line ("Bill — Item — price"), plus one line for their
+ * becomes its own owed line ("Bill - Item - price"), plus one line for their
  * share of fees/tax (or discount). By construction `net` equals the person's
  * settlement balance from `computeBalances`.
  */
@@ -129,13 +129,13 @@ export function personLedgers(bill: Bill): PersonLedger[] {
         const share = parts[idx]!
         itemSum += share
         const held = it.orderedBy.length === 0 // unclaimed → held by the payer
-        owed.push({ label: `${e.title} — ${it.name}${held ? ' (unclaimed)' : ''}`, amount: share })
+        owed.push({ label: `${e.title} - ${it.name}${held ? ' (unclaimed)' : ''}`, amount: share })
       }
       // remainder vs the authoritative allocation is this person's fee/discount share
       const feeShare = (allocateEntry(e).shares[p.id] ?? 0) - itemSum
       if (feeShare !== 0) {
         owed.push({
-          label: `${e.title} — ${feeShare > 0 ? 'fees & tax' : 'discount'}`,
+          label: `${e.title} - ${feeShare > 0 ? 'fees & tax' : 'discount'}`,
           amount: feeShare,
         })
       }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * PetePete mark — a torn receipt carrying a compass rose whose north point
+ * PetePete mark - a torn receipt carrying a compass rose whose north point
  * (ochre) reads upward: the bill and the travel, in one shape. Geometry is
  * centred on the disc (receipt 36×32 at x14–50, rose centred on 32,27) so it
  * stays balanced at every size.

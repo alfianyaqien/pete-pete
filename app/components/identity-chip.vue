@@ -3,7 +3,7 @@ import type { Participant } from '~~/shared/types'
 
 /**
  * "You're <name>" identity picker. The option list is TELEPORTED and
- * fixed-positioned off the trigger's own rect — the hero panel it sits in is
+ * fixed-positioned off the trigger's own rect - the hero panel it sits in is
  * `overflow-hidden` (for the rounded contour art), which would otherwise clip
  * an absolutely-positioned dropdown.
  */

@@ -40,7 +40,7 @@ function checkAll() {
 }
 
 const lineTotal = computed(() => (values.qty || 0) * (values.priceEach || 0))
-// Leaving "ordered by" empty is allowed — the item is saved UNCLAIMED so people
+// Leaving "ordered by" empty is allowed - the item is saved UNCLAIMED so people
 // can claim it themselves later (handy when nobody remembers who ordered what).
 const canSave = computed(() => values.name.trim().length > 0)
 
@@ -103,7 +103,7 @@ const save = handleSubmit((v) => {
         <span class="text-sm text-body">
           Line total ·
           <template v-if="values.orderedBy.length">split {{ values.orderedBy.length }} ways</template>
-          <span v-else class="font-600 text-ochre">unclaimed — claim it later</span>
+          <span v-else class="font-600 text-ochre">unclaimed - claim it later</span>
         </span>
         <span class="num font-600">{{ formatRupiah(lineTotal) }}</span>
       </div>

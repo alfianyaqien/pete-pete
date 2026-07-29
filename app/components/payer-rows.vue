@@ -2,7 +2,7 @@
 import type { Participant } from '~~/shared/types'
 
 /**
- * PayerRows — the "several people paid" editor: one row per payer (avatar +
+ * PayerRows - the "several people paid" editor: one row per payer (avatar +
  * who + amount), add/remove, at least one row always stays. Used for both
  * entry types since they share the same `payers` shape.
  */

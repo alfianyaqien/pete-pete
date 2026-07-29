@@ -1,4 +1,4 @@
-/** DELETE /api/bills/:id/participants/:pid — remove a soul; re-balances every
+/** DELETE /api/bills/:id/participants/:pid - remove a soul; re-balances every
  *  expense they were in. */
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')!

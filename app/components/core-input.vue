@@ -4,9 +4,9 @@ import { useField } from 'vee-validate'
 defineOptions({ inheritAttrs: false })
 
 /**
- * CoreInput — reusable field. Two modes:
+ * CoreInput - reusable field. Two modes:
  *  - VeeValidate mode: pass `name` and it wires itself to the surrounding
- *    useForm() via useField(name) — value + error are managed by the form
+ *    useForm() via useField(name) - value + error are managed by the form
  *    library, never by a local ref.
  *  - plain mode: use v-model (for transient, non-validated inputs).
  */

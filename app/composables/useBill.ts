@@ -8,7 +8,7 @@ export function useBill(id: string) {
 
   /**
    * Nuxt caches the bill under `bill:<id>` and shares it across every page that
-   * asks for the same key — it does NOT refetch when another page mounts, so
+   * asks for the same key - it does NOT refetch when another page mounts, so
    * returning from the add-expense form re-rendered the stale entry list.
    * Re-sync on each client mount (skipping the hydration pass, whose payload is
    * already fresh): the cached bill paints instantly, then revalidates.
@@ -23,7 +23,7 @@ export function useBill(id: string) {
 
 /**
  * Resolve "who the viewer is" for a bill from the identity store. Returns null
- * until the viewer explicitly picks — there is NO default participant, so an
+ * until the viewer explicitly picks - there is NO default participant, so an
  * action like claiming an item can require a deliberate choice first. Also
  * exposes a setter for the identity chip.
  */

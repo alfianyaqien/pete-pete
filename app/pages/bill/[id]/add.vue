@@ -76,7 +76,7 @@ const { values, setFieldValue, handleSubmit, isSubmitting } = useForm<FormShape>
   initialValues: editEntry ? fromEntry(editEntry) : blank(),
 })
 
-// v-model bridges (form state via setFieldValue — no local refs)
+// v-model bridges (form state via setFieldValue - no local refs)
 const typeModel = computed({ get: () => values.type, set: (v) => setFieldValue('type', v) })
 const payerModeModel = computed({ get: () => values.payerMode, set: (v) => setFieldValue('payerMode', v) })
 const shareMethodModel = computed({ get: () => values.shareMethod, set: (v) => setFieldValue('shareMethod', v) })
@@ -86,7 +86,7 @@ const payerIdModel = computed({
 })
 const payersModel = computed({ get: () => values.payers, set: (v) => setFieldValue('payers', v) })
 
-// UI wording only — the stored entry types stay 'simple' / 'shared_order'.
+// UI wording only - the stored entry types stay 'simple' / 'shared_order'.
 const typeOptions = [
   { label: 'Single', value: 'simple' as const },
   { label: 'Bill', value: 'shared_order' as const },

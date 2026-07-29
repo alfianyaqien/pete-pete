@@ -16,7 +16,7 @@ import type {
  * Pure bill mutations. Both repository implementations (memory + supabase) call
  * these so behavior is identical regardless of backend. Every mutation returns a
  * NEW Bill and preserves the invariant that, per entry, the cost shares and the
- * payments both sum to the entry total — otherwise settlement wouldn't net to
+ * payments both sum to the entry total - otherwise settlement wouldn't net to
  * zero (see shared/settle.ts).
  */
 
@@ -108,7 +108,7 @@ function stripFromSimple(e: SimpleEntry, pid: string): SimpleEntry | null {
 }
 
 function stripFromShared(e: SharedOrderEntry, pid: string): SharedOrderEntry | null {
-  // Keep items even if they become owner-less — they just turn UNCLAIMED and are
+  // Keep items even if they become owner-less - they just turn UNCLAIMED and are
   // held by the payer until reclaimed (see itemOwners in shared/settle.ts).
   const items = e.items.map((it) => ({ ...it, orderedBy: it.orderedBy.filter((x) => x !== pid) }))
 

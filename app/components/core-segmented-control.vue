@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends string | number">
-/** CoreSegmentedControl — pill toggle between a few options. v-model. */
+/** CoreSegmentedControl - pill toggle between a few options. v-model. */
 const model = defineModel<T>()
 defineProps<{
   options: { label: string; value: T; icon?: string }[]

@@ -46,7 +46,7 @@ export class SupabaseBillRepository implements BillRepository {
       if (!error) return mapRow(data)
       if (error.code !== '23505') throw error
     }
-    throw new Error('Could not generate a unique share link — please try again')
+    throw new Error('Could not generate a unique share link - please try again')
   }
 
   async get(id: string): Promise<Bill | null> {
@@ -68,7 +68,7 @@ export class SupabaseBillRepository implements BillRepository {
    * compare-and-set on the row's `version`: read (with version) → apply the
    * pure operation → conditionally UPDATE only if `version` is unchanged,
    * bumping it. If a concurrent editor moved it, the update matches 0 rows and
-   * we re-read and retry — so two people editing the same bill never clobber
+   * we re-read and retry - so two people editing the same bill never clobber
    * each other's changes.
    */
   private async mutate(id: string, fn: (bill: Bill) => Bill): Promise<Bill | null> {
@@ -100,7 +100,7 @@ export class SupabaseBillRepository implements BillRepository {
       if (data) return mapRow(data)
       // version changed under us → a concurrent write landed; retry
     }
-    throw new Error('Bill was modified by someone else — please try again')
+    throw new Error('Bill was modified by someone else - please try again')
   }
 
   addParticipant(id: string, input: ParticipantInput) {

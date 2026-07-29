@@ -16,7 +16,7 @@ import type {
   entryInputSchema,
 } from './schemas'
 
-/** All domain types are inferred from the Zod schemas — one source of truth. */
+/** All domain types are inferred from the Zod schemas - one source of truth. */
 export type BadgeKey = z.infer<typeof badgeKeySchema>
 export type Participant = z.infer<typeof participantSchema>
 export type PayerShare = z.infer<typeof payerShareSchema>

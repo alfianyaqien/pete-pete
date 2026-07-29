@@ -69,7 +69,7 @@ const rows = computed(() => [
       class="mt-3 flex items-start gap-2 rounded-control border border-line-light bg-surface-subtle px-3 py-2.5 text-xs text-body"
     >
       <span class="i-tabler-info-circle mt-0.5 text-ochre" />
-      <span>No account needed — files save straight to your device.</span>
+      <span>No account needed - files save straight to your device.</span>
     </div>
   </core-modal>
 </template>

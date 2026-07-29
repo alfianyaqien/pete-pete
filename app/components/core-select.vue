@@ -3,7 +3,7 @@ import { useField } from 'vee-validate'
 import type { BadgeKey } from '~~/shared/types'
 
 /**
- * CoreSelect — custom listbox, not a native <select>. A real <select> can't
+ * CoreSelect - custom listbox, not a native <select>. A real <select> can't
  * be themed once its dropdown opens (OS chrome), so the option list renders
  * as an anchored floating panel positioned off the trigger's own rect (flips
  * above it when there's no room below). Same dual mode as CoreInput: `name`
@@ -13,7 +13,7 @@ import type { BadgeKey } from '~~/shared/types'
  */
 const props = withDefaults(
   defineProps<{
-    /** `badgeKey` is optional — when present the option shows that person's
+    /** `badgeKey` is optional - when present the option shows that person's
      *  travel badge on the left, in both the trigger and the list. */
     options: { label: string; value: T; badgeKey?: BadgeKey }[]
     name?: string

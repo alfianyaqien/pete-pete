@@ -1,6 +1,6 @@
 import { itemClaimInputSchema } from '../../../../../../../shared/schemas'
 
-/** PATCH /api/bills/:id/entries/:eid/items/:itemId — claim/unclaim one item. */
+/** PATCH /api/bills/:id/entries/:eid/items/:itemId - claim/unclaim one item. */
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')!
   const eid = getRouterParam(event, 'eid')!

@@ -9,7 +9,7 @@ to Node 24 (`engines.node` in `package.json`).
 
 ---
 
-## Step 0 — Put the code in Git (once)
+## Step 0 - Put the code in Git (once)
 
 The project isn't a git repo yet. `.env` is already gitignored, so secrets won't
 be committed.
@@ -33,11 +33,11 @@ git push -u origin main
 
 ---
 
-## Step 1 — Deploy
+## Step 1 - Deploy
 
 Pick one route.
 
-### Route A — Vercel Dashboard (recommended)
+### Route A - Vercel Dashboard (recommended)
 
 1. <https://vercel.com/new> → **Import** your GitHub repo.
 2. Framework preset auto-detects **Nuxt**. Leave build settings as-is
@@ -52,7 +52,7 @@ Pick one route.
 
 4. **Deploy.**
 
-### Route B — Vercel CLI
+### Route B - Vercel CLI
 
 ```bash
 npm i -g vercel          # or use: npx vercel
@@ -68,7 +68,7 @@ vercel --prod            # build + deploy to production
 
 ---
 
-## Step 2 — Verify the live deployment
+## Step 2 - Verify the live deployment
 
 ```bash
 BASE=https://<your-app>.vercel.app
@@ -88,24 +88,24 @@ create a bill through the UI as a final check.
 ## Notes & gotchas
 
 - **Env vars are server-only.** The Supabase service key is read by Nitro routes
-  via `runtimeConfig` — it never ships to the browser. Do **not** prefix them so
+  via `runtimeConfig` - it never ships to the browser. Do **not** prefix them so
   they land in `public`. Names must be exactly `NUXT_SUPABASE_URL` /
   `NUXT_SUPABASE_SERVICE_KEY` (Nuxt maps `NUXT_*` onto `runtimeConfig`).
-- **Redeploy after changing env vars** — Vercel bakes them at build time for the
+- **Redeploy after changing env vars** - Vercel bakes them at build time for the
   server bundle; a var change needs a new deployment.
 - **No Supabase configured?** The app still boots but uses the in-memory store
   (data resets constantly, and each serverless invocation is isolated), so bills
   will appear to vanish. Always set both env vars in production.
 - **Node version:** pinned to `24.x` via `engines` (Vercel retired Node 18/20
-  for the functions runtime — 22.x or 24.x are the supported majors). Change it
+  for the functions runtime - 22.x or 24.x are the supported majors). Change it
   there or in Vercel → Project → Settings → Node.js Version.
 - **Custom domain:** Vercel → Project → Settings → Domains.
 - **Social preview image:** the share card is `public/og.svg` (referenced by the
   OG/Twitter meta). Text previews (title + description) work everywhere. Some
-  chat apps — notably WhatsApp — don't render **SVG** preview images, so for a
+  chat apps - notably WhatsApp - don't render **SVG** preview images, so for a
   guaranteed image, export a **1200×630 PNG** to `public/og.png` and change the
   two `ogImage`/`twitterImage` values in `app/app.vue` from `/og.svg` to
   `/og.png`.
-- **Schema changes:** only needed when the `bills` *columns* change — the
+- **Schema changes:** only needed when the `bills` *columns* change - the
   entry/participant shape lives in JSONB and is validated in-app (see
   [supabase-setup.md](./supabase-setup.md)).

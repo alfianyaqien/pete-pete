@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { settleBill } from '~~/shared/settle'
+import { settleBill, directSettle } from '~~/shared/settle'
 import { billStats, personLedgers } from '~~/shared/stats'
 import { formatRupiah } from '~~/shared/format'
 
@@ -20,6 +20,14 @@ const balances = computed(() =>
 )
 const transfers = computed(() => result.value.transfers)
 
+/** Two ways to read the same debts: 'efficient' = fewest transfers (may route
+ *  through a middle person), 'direct' = pay who you actually shared with. */
+const transferMode = ref<'efficient' | 'direct'>('efficient')
+const directTransfers = computed(() => (bill.value ? directSettle(bill.value) : []))
+const shownTransfers = computed(() =>
+  transferMode.value === 'efficient' ? transfers.value : directTransfers.value,
+)
+
 const nameOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.name ?? '?'
 const badgeOf = (pid: string) => bill.value?.participants.find((p) => p.id === pid)?.badgeKey
 
@@ -32,7 +40,7 @@ const owedBack = computed(() => Math.max(0, myBalance.value?.balance ?? 0))
 const iOwe = computed(() => Math.max(0, -(myBalance.value?.balance ?? 0)))
 const peopleOweMe = computed(() => transfers.value.filter((t) => t.to === me.value?.id).length)
 
-/** Items nobody has claimed yet — the settlement holds them on the payer until
+/** Items nobody has claimed yet - the settlement holds them on the payer until
  *  claimed, so flag it so people know to go tap "that's mine". */
 const unclaimed = computed(() => {
   let count = 0
@@ -55,12 +63,12 @@ const fronters = computed(() =>
 const frontedBy = computed(() =>
   fronters.value.length
     ? `${fronters.value[0]}${fronters.value.length > 1 ? ` & ${fronters.value.length - 1}` : ''}`
-    : '—',
+    : '-',
 )
 
 const shareOpen = ref(false)
 
-/** The settle page carries a lot — split its three sections into tabs. Default
+/** The settle page carries a lot - split its three sections into tabs. Default
  *  to the transfers ("who settles whom"), the headline result of settling. */
 const tab = ref<'balances' | 'transfers' | 'breakdown'>('transfers')
 const tabs = [
@@ -91,7 +99,7 @@ const tabs = [
         <span class="i-tabler-hand-finger shrink-0 text-lg text-ochre" />
         <span class="flex-1 text-xs text-body">
           <b>{{ unclaimed.count }} item{{ unclaimed.count === 1 ? '' : 's' }} unclaimed</b>
-          ({{ formatRupiah(unclaimed.amount) }}) — held by whoever paid until claimed. Tap to open the ledger and claim.
+          ({{ formatRupiah(unclaimed.amount) }}) - held by whoever paid until claimed. Tap to open the ledger and claim.
         </span>
         <span class="i-tabler-chevron-right text-muted" />
       </button>
@@ -155,30 +163,54 @@ const tabs = [
 
       <!-- Who settles whom -->
       <section v-show="tab === 'transfers'" class="mt-4">
-        <p class="eyebrow mb-2">Who settles whom</p>
-        <p class="mb-2 text-sm text-body">
-        {{ transfers.length }} transfer{{ transfers.length === 1 ? '' : 's' }} clear{{
-          transfers.length === 1 ? 's' : ''
-        }}
-        everyone
-      </p>
-      <div class="flex flex-col gap-2">
-        <div
-          v-for="(t, i) in transfers"
-          :key="i"
-          class="flex items-center gap-2 rounded-card border border-line-light bg-surface-card px-3 py-2.5"
-        >
-          <avatar-badge :badge-key="badgeOf(t.from)!" :size="26" />
-          <span class="text-sm font-600">{{ nameOf(t.from) }}</span>
-          <span class="mx-1 flex-1 border-t border-dashed border-line-medium" />
-          <span class="i-tabler-arrow-right text-muted" />
-          <span class="text-sm font-600">{{ nameOf(t.to) }}</span>
-          <avatar-badge :badge-key="badgeOf(t.to)!" :size="26" />
-          <money-text :value="t.amount" class="ml-2 text-sm font-600" />
+        <div class="mb-2 flex items-center justify-between gap-2">
+          <p class="eyebrow">Who settles whom</p>
+          <div class="flex rounded-control bg-surface-input p-0.5">
+            <button
+              type="button"
+              class="rounded-chip px-2.5 py-1 text-xs font-600 transition-colors border-none cursor-pointer"
+              :class="transferMode === 'efficient' ? 'bg-forest text-surface-card' : 'bg-transparent text-body'"
+              @click="transferMode = 'efficient'"
+            >
+              Efficient
+            </button>
+            <button
+              type="button"
+              class="rounded-chip px-2.5 py-1 text-xs font-600 transition-colors border-none cursor-pointer"
+              :class="transferMode === 'direct' ? 'bg-forest text-surface-card' : 'bg-transparent text-body'"
+              @click="transferMode = 'direct'"
+            >
+              Direct
+            </button>
+          </div>
         </div>
-        <p v-if="!transfers.length" class="py-4 text-center text-sm text-muted">
-          Everyone is square — nothing to settle.
+        <p class="mb-2 text-xs text-muted">
+          <template v-if="transferMode === 'efficient'">
+            {{ shownTransfers.length }} transfer{{ shownTransfers.length === 1 ? '' : 's' }} - fewest
+            payments to clear everyone, so money may pass through someone in the middle.
+          </template>
+          <template v-else>
+            {{ shownTransfers.length }} transfer{{ shownTransfers.length === 1 ? '' : 's' }} - everyone
+            pays who they actually shared an expense with. No middle-man, usually more payments.
+          </template>
         </p>
+        <div class="flex flex-col gap-2">
+          <div
+            v-for="(t, i) in shownTransfers"
+            :key="i"
+            class="flex items-center gap-2 rounded-card border border-line-light bg-surface-card px-3 py-2.5"
+          >
+            <avatar-badge :badge-key="badgeOf(t.from)!" :size="26" />
+            <span class="text-sm font-600">{{ nameOf(t.from) }}</span>
+            <span class="mx-1 flex-1 border-t border-dashed border-line-medium" />
+            <span class="i-tabler-arrow-right text-muted" />
+            <span class="text-sm font-600">{{ nameOf(t.to) }}</span>
+            <avatar-badge :badge-key="badgeOf(t.to)!" :size="26" />
+            <money-text :value="t.amount" class="ml-2 text-sm font-600" />
+          </div>
+          <p v-if="!shownTransfers.length" class="py-4 text-center text-sm text-muted">
+            Everyone is square - nothing to settle.
+          </p>
         </div>
       </section>
 
