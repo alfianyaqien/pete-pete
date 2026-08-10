@@ -198,10 +198,46 @@ export function settle(balances: Balance[]): Transfer[] {
   return transfers
 }
 
-/** Convenience: outstanding balances + the transfers that still clear them. */
+/**
+ * Reduce a FIXED settlement plan by the payments already recorded, matching each
+ * payment to the transfer with the same from->to pair (partial payments shrink
+ * the transfer; a full one removes it). This keeps the plan stable while it is
+ * being paid off: marking one transfer paid removes exactly that transfer and
+ * leaves the rest untouched - it never re-optimizes the whole set (which would
+ * reshuffle amounts and even resurrect the transfer just paid).
+ */
+export function applyPayments(
+  plan: Transfer[],
+  payments: { from: string; to: string; amount: number }[],
+): Transfer[] {
+  const paid = new Map<string, number>()
+  for (const p of payments) {
+    const k = p.from + ' ' + p.to
+    paid.set(k, (paid.get(k) ?? 0) + p.amount)
+  }
+  const out: Transfer[] = []
+  for (const t of plan) {
+    const k = t.from + ' ' + t.to
+    const applied = Math.min(paid.get(k) ?? 0, t.amount)
+    if (applied > 0) paid.set(k, (paid.get(k) ?? 0) - applied)
+    const remaining = t.amount - applied
+    if (remaining > 0) out.push({ from: t.from, to: t.to, amount: remaining })
+  }
+  return out
+}
+
+/**
+ * Outstanding balances (for the per-person display) plus the STABLE set of
+ * transfers still to be made. The plan is derived from the expenses once and only
+ * reduced by recorded payments (see applyPayments) - never re-optimized - so
+ * paying one transfer never reshuffles the others.
+ */
 export function settleBill(bill: Bill): { balances: Balance[]; transfers: Transfer[] } {
-  const balances = outstandingBalances(bill)
-  return { balances, transfers: settle(balances) }
+  const plan = settle(computeBalances(bill))
+  return {
+    balances: outstandingBalances(bill),
+    transfers: applyPayments(plan, bill.payments ?? []),
+  }
 }
 
 // ── direct settlement ("who actually owes whom") ──────────────────────────
@@ -244,10 +280,6 @@ export function directSettle(bill: Bill): Transfer[] {
     }
   }
 
-  // a recorded payment from A to B pays down A's debt to B: add the reverse edge
-  // so netting cancels it out (over-payment flips the pair the other way).
-  for (const p of bill.payments ?? []) add(p.to, p.from, p.amount)
-
   // net each pair: only the larger direction survives
   const out: Transfer[] = []
   const done = new Set<string>()
@@ -263,4 +295,9 @@ export function directSettle(bill: Bill): Transfer[] {
   }
   out.sort((a, b) => a.from.localeCompare(b.from) || a.to.localeCompare(b.to))
   return out
+}
+
+/** The direct plan reduced by recorded payments - stable, same rule as settleBill. */
+export function remainingDirectTransfers(bill: Bill): Transfer[] {
+  return applyPayments(directSettle(bill), bill.payments ?? [])
 }

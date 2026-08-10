@@ -8,6 +8,8 @@ import {
   settle,
   settleBill,
   directSettle,
+  remainingDirectTransfers,
+  applyPayments,
 } from './settle'
 import { setItemClaim, addPayment, removePayment } from './operations'
 import type { Bill, Participant, Transfer, Balance } from './types'
@@ -311,9 +313,60 @@ describe('settlement payments - recording clears what is outstanding', () => {
         },
       ],
     }
-    expect(directSettle(bill)).toEqual([{ from: 'B', to: 'A', amount: 50_000 }])
+    expect(remainingDirectTransfers(bill)).toEqual([{ from: 'B', to: 'A', amount: 50_000 }])
     const paid = addPayment(bill, { from: 'B', to: 'A', amount: 50_000 })
-    expect(directSettle(paid)).toEqual([]) // square, no direct transfer left
+    expect(remainingDirectTransfers(paid)).toEqual([]) // square, no direct transfer left
+  })
+})
+
+describe('applyPayments - marking a transfer paid is stable (never reshuffles)', () => {
+  // the exact shape that made the old re-optimizing plan churn
+  const plan: Transfer[] = [
+    { from: 'D', to: 'A', amount: 40 },
+    { from: 'C', to: 'A', amount: 30 },
+    { from: 'C', to: 'B', amount: 30 },
+  ]
+
+  it('removes exactly the paid transfer and leaves the others identical', () => {
+    expect(applyPayments(plan, [{ from: 'C', to: 'A', amount: 30 }])).toEqual([
+      { from: 'D', to: 'A', amount: 40 },
+      { from: 'C', to: 'B', amount: 30 },
+    ])
+  })
+
+  it('a partial payment shrinks only that transfer', () => {
+    expect(applyPayments(plan, [{ from: 'C', to: 'A', amount: 10 }])).toEqual([
+      { from: 'D', to: 'A', amount: 40 },
+      { from: 'C', to: 'A', amount: 20 },
+      { from: 'C', to: 'B', amount: 30 },
+    ])
+  })
+
+  it('the efficient plan stays fixed as transfers are marked paid', () => {
+    const bill: Bill = {
+      id: 'stab1',
+      title: 'Trip',
+      createdAt: new Date().toISOString(),
+      lunas: false,
+      participants: ['A', 'B', 'C', 'D'].map(P),
+      entries: [
+        {
+          id: 'e1',
+          type: 'simple',
+          title: 'Lodging',
+          date: '2026-07-24',
+          amount: 400_000,
+          payers: [{ participantId: 'A', amount: 400_000 }],
+          shareMethod: 'equally',
+          sharers: ['A', 'B', 'C', 'D'].map((id) => ({ participantId: id, share: 100_000 })),
+        },
+      ],
+    }
+    const before = settleBill(bill).transfers // B->A, C->A, D->A each 100k
+    const paid = addPayment(bill, { from: 'B', to: 'A', amount: 100_000 })
+    const after = settleBill(paid).transfers
+    // the two untouched transfers are byte-identical, and B->A is simply gone
+    expect(after).toEqual(before.filter((t) => t.from !== 'B'))
   })
 })
 

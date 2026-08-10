@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { settleBill, directSettle } from '~~/shared/settle'
+import { settleBill, remainingDirectTransfers } from '~~/shared/settle'
 import { billStats, personLedgers } from '~~/shared/stats'
 import { formatRupiah } from '~~/shared/format'
 import type { Bill, Transfer } from '~~/shared/types'
@@ -24,7 +24,7 @@ const transfers = computed(() => result.value.transfers)
 /** Two ways to read the same debts: 'efficient' = fewest transfers (may route
  *  through a middle person), 'direct' = pay who you actually shared with. */
 const transferMode = ref<'efficient' | 'direct'>('efficient')
-const directTransfers = computed(() => (bill.value ? directSettle(bill.value) : []))
+const directTransfers = computed(() => (bill.value ? remainingDirectTransfers(bill.value) : []))
 const shownTransfers = computed(() =>
   transferMode.value === 'efficient' ? transfers.value : directTransfers.value,
 )
