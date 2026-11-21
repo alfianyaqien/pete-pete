@@ -24,3 +24,5 @@ logs
 !.env.example
 
 .vercel
+# graphify knowledge graph (generated locally)
+graphify-out/
