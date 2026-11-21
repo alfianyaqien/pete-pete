@@ -109,3 +109,34 @@ create a bill through the UI as a final check.
 - **Schema changes:** only needed when the `bills` *columns* change - the
   entry/participant shape lives in JSONB and is validated in-app (see
   [supabase-setup.md](./supabase-setup.md)).
+
+---
+
+# Deployment (self-hosted VPS)
+
+Live at <https://petepete.alfianyaqien.my.id> on the `wedding` host
+(`ssh wedding`). No Supabase: it uses the host's PostgreSQL 16 directly.
+
+| Piece | Where |
+|---|---|
+| App | `petepete.service` → `node server/index.mjs` on `127.0.0.1:3006` |
+| Code | `/srv/petepete/releases/<ts>`, symlinked from `/srv/petepete/current` |
+| Env | `/srv/petepete/shared/env` (`NUXT_DATABASE_URL=postgresql://petepete@/petepete?host=/var/run/postgresql`) |
+| DB | database `petepete`, role `petepete`, Unix socket + peer auth (no password) |
+| TLS/proxy | `petepete.alfianyaqien.my.id` block in `/etc/caddy/Caddyfile` |
+
+`NUXT_DATABASE_URL` takes precedence over the Supabase vars (see
+`server/utils/repositories.ts`). Schema = `supabase/migrations/*.sql`, applied
+as the owner: `sudo -u petepete psql -d petepete -f <file>`.
+
+**Redeploy** (build locally with the Node preset; `nuxt.config.ts` stays on Vercel):
+
+```bash
+NITRO_PRESET=node-server npx nuxt build
+REL=$(date +%Y%m%d-%H%M%S)
+COPYFILE_DISABLE=1 tar --no-xattrs -czf - -C .output . | ssh wedding "mkdir -p /tmp/pp-$REL && tar -xzf - -C /tmp/pp-$REL && \
+  sudo mv /tmp/pp-$REL /srv/petepete/releases/$REL && sudo chown -R petepete:petepete /srv/petepete/releases/$REL && \
+  sudo ln -sfn /srv/petepete/releases/$REL /srv/petepete/current && sudo systemctl restart petepete"
+```
+
+Rollback: point `current` at the previous release and restart.

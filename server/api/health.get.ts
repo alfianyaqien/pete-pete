@@ -4,6 +4,14 @@
  * can hit. Returns 503 if the database is unreachable.
  */
 export default defineEventHandler(async (event) => {
+  if (useRuntimeConfig(event).databaseUrl) {
+    try {
+      await usePostgres(event).query('select 1 from bills limit 1')
+    } catch (err) {
+      throw createError({ statusCode: 503, statusMessage: `Database unreachable: ${(err as Error).message}` })
+    }
+    return { ok: true, checkedAt: new Date().toISOString() }
+  }
   const sb = useSupabase(event)
   const { error } = await sb.from('bills').select('id').limit(1)
   if (error) {
