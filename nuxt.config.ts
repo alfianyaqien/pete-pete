@@ -31,7 +31,9 @@ export default defineNuxtConfig({
   // Server-only secrets. The frontend never reads these - only Nitro routes do
   // (via useRuntimeConfig().supabaseUrl / supabaseServiceKey). Overridden in
   // production by NUXT_SUPABASE_URL / NUXT_SUPABASE_SERVICE_KEY env vars.
+  // NUXT_DATABASE_URL (self-hosted Postgres) takes precedence over Supabase.
   runtimeConfig: {
+    databaseUrl: '',
     supabaseUrl: '',
     supabaseServiceKey: '',
     // nothing under `public` - no Supabase keys reach the client
